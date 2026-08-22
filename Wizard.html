@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 13px; padding: 4px 14px 14px; }
+    label { display: block; margin-top: 14px; font-weight: bold; }
+    input[type=text] { width: 100%; padding: 6px; box-sizing: border-box; margin-top: 4px; font-size: 13px; }
+    .hint { color: #666; font-size: 12px; margin-top: 4px; }
+    .step { background: #f3f3f3; border-radius: 6px; padding: 8px 10px; margin-top: 14px; font-weight: bold; }
+    .checkbox-row { font-weight: normal; margin-top: 6px; }
+    button { margin-top: 20px; padding: 9px 18px; background: #34a853; color: #fff; border: none;
+             border-radius: 4px; cursor: pointer; font-size: 13px; }
+    button:disabled { background: #aaa; cursor: default; }
+    #error { color: #c00; margin-top: 12px; display: none; }
+    #success { display: none; }
+    #success a { display: block; margin-top: 8px; color: #1155cc; }
+    #success button { background: #666; }
+  </style>
+</head>
+<body>
+  <div id="formWizard">
+    <div class="step">Steg 1: Namnge formuläret</div>
+    <label for="name">Formulärets namn</label>
+    <input type="text" id="name" placeholder="T.ex. Kapitel 3 - Läxförhör">
+
+    <div class="step">Steg 2: Kontrollera antal frågor</div>
+    <p>Flervalsfrågor: <b><?= mcCount ?></b> st &nbsp;|&nbsp; Kortsvarsfrågor: <b><?= saCount ?></b> st</p>
+    <p class="hint">Frågorna hämtas från flikarna "Flervalsfrågor" och "Kortsvar". Stäng guiden och fyll på där om antalet inte stämmer.</p>
+
+    <? if (saCount > 0) { ?>
+    <div class="step">Steg 3: Ska kortsvarsfrågorna poängsättas?</div>
+    <div class="checkbox-row">
+      <label style="font-weight: normal; display: inline;">
+        <input type="checkbox" id="gradeShortAnswer"> Ja, sätt poäng på kortsvarsfrågorna
+      </label>
+    </div>
+    <p class="hint">Google Forms rättar inte kortsvar automatiskt - du rättar snabbt själv i formulärets
+      "Svar"-flik efteråt. Rätt svar du skrivit in sparas som facit i fliken Formulärregister.</p>
+    <? } ?>
+
+    <button id="createBtn" onclick="createForm()">Skapa formulär</button>
+    <div id="error"></div>
+  </div>
+
+  <div id="success">
+    <h3>✅ Formuläret är skapat!</h3>
+    <a id="publishLink" target="_blank">Öppna formuläret</a>
+    <a id="editLink" target="_blank">Redigera formuläret</a>
+    <p class="hint">Svaren hamnar i fliken "<span id="sheetName"></span>" i det här kalkylarket.</p>
+    <button onclick="google.script.host.close()">Stäng</button>
+  </div>
+
+  <script>
+    function createForm() {
+      const btn = document.getElementById('createBtn');
+      const errorBox = document.getElementById('error');
+      errorBox.style.display = 'none';
+
+      const name = document.getElementById('name').value;
+      const gradeEl = document.getElementById('gradeShortAnswer');
+
+      btn.disabled = true;
+      btn.textContent = 'Skapar...';
+
+      google.script.run
+        .withSuccessHandler(onCreated)
+        .withFailureHandler(onError)
+        .createFormFromWizard({ name: name, gradeShortAnswer: gradeEl ? gradeEl.checked : false });
+    }
+
+    function onCreated(result) {
+      document.getElementById('formWizard').style.display = 'none';
+      document.getElementById('success').style.display = 'block';
+      document.getElementById('publishLink').href = result.publishUrl;
+      document.getElementById('publishLink').textContent = 'Öppna formuläret: ' + result.publishUrl;
+      document.getElementById('editLink').href = result.editUrl;
+      document.getElementById('editLink').textContent = 'Redigera formuläret';
+      document.getElementById('sheetName').textContent = result.responseSheetName || '(namnges vid första svaret)';
+    }
+
+    function onError(err) {
+      const btn = document.getElementById('createBtn');
+      btn.disabled = false;
+      btn.textContent = 'Skapa formulär';
+      const errorBox = document.getElementById('error');
+      errorBox.textContent = err.message || String(err);
+      errorBox.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
