@@ -5,16 +5,16 @@
   <style>
     body { font-family: Arial, sans-serif; font-size: 13px; padding: 4px 14px 14px; }
     label { display: block; margin-top: 14px; font-weight: bold; }
-    input[type=text] { width: 100%; padding: 6px; box-sizing: border-box; margin-top: 4px; font-size: 13px; }
+    input[type=text], input[type=email] { width: 100%; padding: 6px; box-sizing: border-box; margin-top: 4px; font-size: 13px; }
     .hint { color: #666; font-size: 12px; margin-top: 4px; }
     .step { background: #f3f3f3; border-radius: 6px; padding: 8px 10px; margin-top: 14px; font-weight: bold; }
-    .checkbox-row { font-weight: normal; margin-top: 6px; }
     button { margin-top: 20px; padding: 9px 18px; background: #34a853; color: #fff; border: none;
              border-radius: 4px; cursor: pointer; font-size: 13px; }
     button:disabled { background: #aaa; cursor: default; }
     #error { color: #c00; margin-top: 12px; display: none; }
     #success { display: none; }
     #success a { display: block; margin-top: 8px; color: #1155cc; }
+    #success .facit-box { background: #fff2cc; border-radius: 6px; padding: 10px 12px; margin-top: 14px; }
     #success button { background: #666; }
   </style>
 </head>
@@ -29,14 +29,12 @@
     <p class="hint">Frågorna hämtas från flikarna "Flervalsfrågor" och "Kortsvar". Stäng guiden och fyll på där om antalet inte stämmer.</p>
 
     <? if (saCount > 0) { ?>
-    <div class="step">Steg 3: Ska kortsvarsfrågorna poängsättas?</div>
-    <div class="checkbox-row">
-      <label style="font-weight: normal; display: inline;">
-        <input type="checkbox" id="gradeShortAnswer"> Ja, sätt poäng på kortsvarsfrågorna
-      </label>
-    </div>
-    <p class="hint">Google Forms rättar inte kortsvar automatiskt - du rättar snabbt själv i formulärets
-      "Svar"-flik efteråt. Rätt svar du skrivit in sparas som facit i fliken Formulärregister.</p>
+    <div class="step">Steg 3: Facit för kortsvar</div>
+    <p class="hint">Google Forms rättar inte kortsvar automatiskt. Istället svarar <b>du</b> på formuläret direkt efter
+      att det skapats - ditt svar blir facit, och rättas sedan mot elevernas svar varje gång du klickar
+      "Uppdatera resultatsidan".</p>
+    <label for="teacherEmail">Din e-postadress (för att känna igen ditt svar)</label>
+    <input type="email" id="teacherEmail" value="<?= teacherEmail ?>">
     <? } ?>
 
     <button id="createBtn" onclick="createForm()">Skapa formulär</button>
@@ -48,6 +46,10 @@
     <a id="publishLink" target="_blank">Öppna formuläret</a>
     <a id="editLink" target="_blank">Redigera formuläret</a>
     <p class="hint">Svaren hamnar i fliken "<span id="sheetName"></span>" i det här kalkylarket.</p>
+    <div id="facitReminder" class="facit-box" style="display:none;">
+      ⚠️ Glöm inte: svara på formuläret själv (via länken ovan) för att sätta facit till kortsvarsfrågorna.
+      Facit hämtas automatiskt nästa gång du klickar "Uppdatera resultatsidan".
+    </div>
     <button onclick="google.script.host.close()">Stäng</button>
   </div>
 
@@ -58,7 +60,7 @@
       errorBox.style.display = 'none';
 
       const name = document.getElementById('name').value;
-      const gradeEl = document.getElementById('gradeShortAnswer');
+      const teacherEmailEl = document.getElementById('teacherEmail');
 
       btn.disabled = true;
       btn.textContent = 'Skapar...';
@@ -66,7 +68,7 @@
       google.script.run
         .withSuccessHandler(onCreated)
         .withFailureHandler(onError)
-        .createFormFromWizard({ name: name, gradeShortAnswer: gradeEl ? gradeEl.checked : false });
+        .createFormFromWizard({ name: name, teacherEmail: teacherEmailEl ? teacherEmailEl.value : '' });
     }
 
     function onCreated(result) {
@@ -77,6 +79,9 @@
       document.getElementById('editLink').href = result.editUrl;
       document.getElementById('editLink').textContent = 'Redigera formuläret';
       document.getElementById('sheetName').textContent = result.responseSheetName || '(namnges vid första svaret)';
+      if (result.needsFacit) {
+        document.getElementById('facitReminder').style.display = 'block';
+      }
     }
 
     function onError(err) {

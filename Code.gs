@@ -32,10 +32,12 @@ function showHelp() {
     '<ol>' +
     '<li>Fyll i frågor i flikarna <b>Flervalsfrågor</b> och/eller <b>Kortsvar</b> (en rad per fråga).</li>' +
     '<li>Öppna <b>Skapa Formulär &gt; Nytt formulär (guide)</b> i menyn och följ stegen.</li>' +
-    '<li>Formuläret skapas i samma Drive-mapp som kalkylarket. Svaren hamnar automatiskt i en ny flik här i arket.</li>' +
-    '<li>Flervalsfrågor med rätt svar rättas automatiskt. Poängsatta kortsvar rättar du snabbt själv i formulärets ' +
-    '"Svar"-flik i Google Forms (facit finns sparat i fliken Formulärregister).</li>' +
-    '<li>Klicka på <b>Uppdatera resultatsidan</b> när du vill se en sammanställning per elev, över alla formulär.</li>' +
+    '<li>Formuläret skapas i samma Drive-mapp som kalkylarket. Svaren hamnar automatiskt i en ny flik här i arket. ' +
+    'Eleverna identifieras via sin verifierade e-post - ingen namnfråga behövs.</li>' +
+    '<li>Flervalsfrågor med rätt svar rättas automatiskt. Poängsatta kortsvarsfrågor rättas genom att DU svarar på ' +
+    'formuläret själv direkt efter att det skapats - ditt svar blir facit.</li>' +
+    '<li>Klicka på <b>Uppdatera resultatsidan</b> när du vill se en sammanställning per elev, över alla formulär. ' +
+    'Facit för eventuella kortsvar hämtas automatiskt samtidigt.</li>' +
     '</ol>' +
     '<p><b>Tips:</b> Vill en kollega använda samma mall? Låt dem göra <i>Arkiv &gt; Skapa en kopia</i> på det här arket. ' +
     'Deras kopia startar med tomma flikar och ett eget formulärregister.</p>' +

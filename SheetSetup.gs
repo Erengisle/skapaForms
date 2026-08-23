@@ -24,14 +24,14 @@ function setupShortAnswerSheet(ss) {
   if (ss.getSheetByName(SHEET_NAMES.SHORT_ANSWER)) return;
   const sheet = ss.insertSheet(SHEET_NAMES.SHORT_ANSWER);
 
-  sheet.getRange('A1:C1').merge()
-    .setValue('Bygg kortsvarsfrågor för NÄSTA formulär du skapar. Fyll i "Rätt svar" och "Poäng" om frågan ska kunna ' +
-      'poängsättas (du väljer i guiden om kortsvaren ska poängsättas). Google Forms rättar inte kortsvar automatiskt - ' +
-      'du rättar snabbt själv i formulärets "Svar"-flik efteråt. Raderna rensas automatiskt när formuläret skapas.')
+  sheet.getRange('A1:B1').merge()
+    .setValue('Bygg kortsvarsfrågor för NÄSTA formulär du skapar. Fyll i "Poäng" om frågan ska rättas automatiskt - ' +
+      'facit sätts genom att DU svarar på formuläret själv direkt efter att det skapats (guiden förklarar hur). ' +
+      'Lämna poäng tomt/0 för en öppen, ograderad fråga. Raderna rensas automatiskt när formuläret skapas.')
     .setWrap(true).setFontStyle('italic').setBackground('#f3f3f3');
   sheet.setRowHeight(1, 60);
 
-  const headers = ['Fråga', 'Rätt svar (valfritt, för din egen rättning)', 'Poäng (valfritt)'];
+  const headers = ['Fråga', 'Poäng (valfritt)'];
   sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#cfe2f3');
   sheet.setFrozenRows(2);
   sheet.autoResizeColumns(1, headers.length);
@@ -43,8 +43,8 @@ function setupRegisterSheet(ss) {
 
   const headers = [
     'Formulär-ID', 'Namn', 'Skapat', 'Skapad av', 'Redigeringslänk', 'Svara-länk',
-    'Svarsflik', 'Poängsatt', 'Antal flervalsfrågor', 'Antal kortsvarsfrågor',
-    'Kortsvar-facit (för manuell rättning)'
+    'Svarsflik', 'Poängsatt (flerval)', 'Antal flervalsfrågor', 'Antal kortsvarsfrågor',
+    'Facit-avsändare (e-post)', 'Kortsvarsfacit-status', 'Kortsvarsfacit (JSON, hanteras av scriptet)'
   ];
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#e0e0e0');
   sheet.setFrozenRows(1);
