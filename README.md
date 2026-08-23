@@ -39,6 +39,18 @@ en sammanställning av elevernas poäng.
    om **📊 Resultat** - en rad per elev, en kolumn per formulär, med aktuella poäng
    (inklusive sådant som rättats manuellt sedan sist).
 
+### Färgkodning i Resultat
+
+Poängceller färgas efter andel rätt: **röd** <50 %, **gul** 50-74 %, **grön** ≥75 %.
+Samma färgskala används i två tabeller:
+
+- **Elevtabellen** (överst) - varje elevs poäng per formulär, för att snabbt se vilka
+  elever som ligger lågt.
+- **Frågeanalysen** (under elevtabellen) - andel rätt per enskild fråga, summerat över
+  hela klassen, för att se vilka frågor som är extra svåra. Endast poängsatta frågor
+  (flervalsfrågor med rätt svar, samt kortsvar du valt att poängsätta och rättat) visas
+  här, eftersom ograderade frågor saknar ett rätt/fel-facit.
+
 ## Dela mallen till kollegor
 
 Låt kollegan göra **Arkiv (File) > Skapa en kopia** på mallarket. Kopian får en
