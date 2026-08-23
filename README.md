@@ -8,19 +8,25 @@ en sammanställning av elevernas poäng.
 
 1. Skapa ett nytt Google-kalkylark (eller använd ett befintligt som ska bli mallen).
 2. Öppna **Tillägg (Extensions) > Apps Script**.
-3. Ta bort eventuell standardkod i `Code.gs` och skapa sedan följande filer i
+3. Visa manifestfilen (den finns redan dold i varje nytt projekt - skapa **inte**
+   en ny fil för den, det ger felet "det finns redan en fil med det namnet"):
+   1. Klicka på kugghjulet ⚙️ **"Projektinställningar"** i vänstermenyn.
+   2. Bocka i **"Visa filen 'appsscript.json' i redigeraren"** (manifest-inställningen).
+   3. Gå tillbaka till filvyn (`</>`-ikonen) - `appsscript.json` syns nu i filistan.
+   4. Öppna den, markera och radera allt innehåll, och klistra in innehållet från
+      `appsscript.json` i det här repot.
+4. Ta bort eventuell standardkod i `Code.gs` och skapa sedan resten av filerna i
    Apps Script-editorn, med exakt samma innehåll som filerna i det här repot:
-   - `appsscript.json` (öppnas via kugghjulet "Redigera manifestfil" i projektinställningarna)
    - `Code.gs`
    - `SheetSetup.gs`
    - `FormBuilder.gs`
    - `Results.gs`
    - `Wizard.html` (skapa som en HTML-fil, inte .gs)
-4. Spara projektet och ladda om kalkylarket i webbläsaren.
-5. En ny meny **"Skapa Formulär"** dyker upp. Klicka på valfritt menyval för att
+5. Spara projektet och ladda om kalkylarket i webbläsaren.
+6. En ny meny **"Skapa Formulär"** dyker upp. Klicka på valfritt menyval för att
    godkänna de behörigheter Google frågar efter (Forms, Kalkylark, Drive) - detta
    sker en gång per person som använder arket.
-6. Klart! Arket har nu flikarna **Flervalsfrågor**, **Kortsvar** och **📊 Resultat**
+7. Klart! Arket har nu flikarna **Flervalsfrågor**, **Kortsvar** och **📊 Resultat**
    (samt en dold flik **Formulärregister**).
 
 ## Så använder en lärare mallen
