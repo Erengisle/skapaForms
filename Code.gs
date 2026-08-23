@@ -34,10 +34,9 @@ function showHelp() {
     '<li>Öppna <b>Skapa Formulär &gt; Nytt formulär (guide)</b> i menyn och följ stegen.</li>' +
     '<li>Formuläret skapas i samma Drive-mapp som kalkylarket. Svaren hamnar automatiskt i en ny flik här i arket. ' +
     'Eleverna identifieras via sin verifierade e-post - ingen namnfråga behövs.</li>' +
-    '<li>Flervalsfrågor med rätt svar rättas automatiskt. Poängsatta kortsvarsfrågor rättas genom att DU svarar på ' +
-    'formuläret själv direkt efter att det skapats - ditt svar blir facit.</li>' +
-    '<li>Klicka på <b>Uppdatera resultatsidan</b> när du vill se en sammanställning per elev, över alla formulär. ' +
-    'Facit för eventuella kortsvar hämtas automatiskt samtidigt.</li>' +
+    '<li>Flervalsfrågor med rätt svar rättas automatiskt av Google Forms. Kortsvar är öppna frågor utan facit - ' +
+    'svaren går att läsa i svarsfliken, men räknas inte in i poängen.</li>' +
+    '<li>Klicka på <b>Uppdatera resultatsidan</b> när du vill se en sammanställning per elev, över alla formulär.</li>' +
     '</ol>' +
     '<p><b>Tips:</b> Vill en kollega använda samma mall? Låt dem göra <i>Arkiv &gt; Skapa en kopia</i> på det här arket. ' +
     'Deras kopia startar med tomma flikar och ett eget formulärregister.</p>' +

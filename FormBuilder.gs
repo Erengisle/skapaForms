@@ -5,8 +5,8 @@
  * eleven är inloggad i skolans Google-konto) - ingen egen "Namn"-fråga behövs.
  *
  * Flervalsfrågor rättas via Google Forms inbyggda quiz-läge (rätt alternativ anges
- * i kalkylarket). Kortsvar rättas istället genom att LÄRAREN själv svarar på
- * formuläret direkt efter att det skapats - det svaret blir facit (se Facit.gs).
+ * i kalkylarket). Kortsvar är öppna frågor utan facit/poäng - svaren går att läsa
+ * i formulärets svarsflik, men räknas inte in i resultatsammanställningen.
  */
 
 function showNewFormWizard() {
@@ -17,9 +17,8 @@ function showNewFormWizard() {
   const template = HtmlService.createTemplateFromFile('Wizard');
   template.mcCount = mcCount;
   template.saCount = saCount;
-  template.teacherEmail = Session.getActiveUser().getEmail();
 
-  const html = template.evaluate().setWidth(480).setHeight(saCount > 0 ? 540 : 380);
+  const html = template.evaluate().setWidth(480).setHeight(380);
   SpreadsheetApp.getUi().showModalDialog(html, 'Nytt formulär – guide');
 }
 
@@ -43,11 +42,6 @@ function createFormFromWizard(options) {
     throw new Error('Lägg till minst en fråga i "Flervalsfrågor" eller "Kortsvar" innan du skapar formuläret.');
   }
 
-  const teacherEmail = (options && options.teacherEmail || '').trim();
-  if (saRows.length > 0 && (!teacherEmail || teacherEmail.indexOf('@') === -1)) {
-    throw new Error('Ange en giltig e-postadress för dig själv - den används för att hämta facit till kortsvarsfrågorna.');
-  }
-
   const isQuiz = mcRows.some(function (r) { return r.isGraded; });
 
   const form = FormApp.create(name);
@@ -59,7 +53,7 @@ function createFormFromWizard(options) {
 
   const responseSheetName = linkFormToSpreadsheet(form, ss, name);
   moveFormToSpreadsheetFolder(form, ss);
-  logFormInRegister(ss, form, name, responseSheetName, isQuiz, mcRows.length, saRows.length, teacherEmail, saRows);
+  logFormInRegister(ss, form, name, responseSheetName, isQuiz, mcRows.length, saRows.length);
 
   clearWorkingRows(mcSheet, 3);
   clearWorkingRows(saSheet, 3);
@@ -67,8 +61,7 @@ function createFormFromWizard(options) {
   return {
     editUrl: form.getEditUrl(),
     publishUrl: form.getPublishedUrl(),
-    responseSheetName: responseSheetName,
-    needsFacit: saRows.length > 0
+    responseSheetName: responseSheetName
   };
 }
 
@@ -85,8 +78,6 @@ function addMultipleChoiceItem(form, row) {
 }
 
 function addShortAnswerItem(form, row) {
-  // Inga poäng sätts på själva Forms-frågan - kortsvar rättas av vårt eget script
-  // genom att jämföra elevens svar med lärarens facit-svar (se Facit.gs).
   form.addTextItem().setTitle(row.question).setRequired(false);
 }
 
@@ -131,23 +122,12 @@ function moveFormToSpreadsheetFolder(form, ss) {
   }
 }
 
-/**
- * Loggar formuläret i registret. Kortsvarens facit sparas som JSON med
- * {title, points, correctAnswer:null} - correctAnswer fylls i senare av
- * collectPendingFacits() i Facit.gs när läraren har svarat på formuläret.
- */
-function logFormInRegister(ss, form, name, responseSheetName, isQuiz, mcCount, saCount, teacherEmail, saRows) {
+function logFormInRegister(ss, form, name, responseSheetName, isQuiz, mcCount, saCount) {
   const sheet = ss.getSheetByName(SHEET_NAMES.REGISTER);
-  const facitEntries = saRows.map(function (r) {
-    return { title: r.question, points: r.points, correctAnswer: null };
-  });
-  const status = saCount === 0 ? 'Inga kortsvar' : 'Väntar på lärarens svar';
-
   sheet.appendRow([
     form.getId(), name, new Date(), Session.getActiveUser().getEmail(),
     form.getEditUrl(), form.getPublishedUrl(), responseSheetName,
-    isQuiz ? 'Ja' : 'Nej', mcCount, saCount,
-    teacherEmail, status, JSON.stringify(facitEntries)
+    isQuiz ? 'Ja' : 'Nej', mcCount, saCount
   ]);
 }
 
@@ -195,15 +175,12 @@ function readMultipleChoiceRows(sheet) {
 function readShortAnswerRows(sheet) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 3) return [];
-  const values = sheet.getRange(3, 1, lastRow - 2, 2).getValues();
+  const values = sheet.getRange(3, 1, lastRow - 2, 1).getValues();
   const rows = [];
   values.forEach(function (v) {
     const question = String(v[0]).trim();
     if (!question) return;
-    rows.push({
-      question: question,
-      points: Number(v[1]) || 0
-    });
+    rows.push({ question: question });
   });
   return rows;
 }
