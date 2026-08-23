@@ -10,7 +10,7 @@ function setupMultipleChoiceSheet(ss) {
   sheet.getRange('A1:H1').merge()
     .setValue('Bygg flervalsfrågor för NÄSTA formulär du skapar. Fyll i en rad per fråga (minst 2 alternativ). ' +
       'Fyll i "Rätt alternativ" och "Poäng" om frågan ska rättas automatiskt. Raderna rensas automatiskt när ' +
-      'formuläret skapas - frågorna sparas i fliken Formulärregister.')
+      'formuläret skapas - frågorna finns då istället i själva Google-formuläret.')
     .setWrap(true).setFontStyle('italic').setBackground('#f3f3f3');
   sheet.setRowHeight(1, 46);
 
