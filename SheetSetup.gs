@@ -26,16 +26,15 @@ function setupShortAnswerSheet(ss) {
   if (ss.getSheetByName(SHEET_NAMES.SHORT_ANSWER)) return;
   const sheet = ss.insertSheet(SHEET_NAMES.SHORT_ANSWER);
 
-  sheet.getRange('A1:B1').merge()
-    .setValue('Bygg kortsvarsfrågor för NÄSTA formulär du skapar. Skriv frågan i Fråga-kolumnen, eller bara ett ' +
-      'nummer (t.ex. "3") om eleverna redan har frågetexten på annat håll. Ange gärna Poäng (annars räknas ' +
-      'frågan som 1 poäng värd). Rätt svar anges INTE här - kortsvar rättas mot ditt eget svar på formuläret ' +
-      '(facit), se till att svara exakt som du vill att eleverna ska svara. Raderna rensas automatiskt när ' +
-      'formuläret skapas.')
+  sheet.getRange('A1').merge()
+    .setValue('Bygg kortsvarsfrågor för NÄSTA formulär du skapar. Det här är öppna frågor som INTE rättas ' +
+      'automatiskt - svaren går att läsa i formulärets svarsflik. På resultatsidan ser du bara om en elev har ' +
+      'svarat på formuläret eller inte. Skriv frågan i Fråga-kolumnen, eller bara ett nummer (t.ex. "3") om ' +
+      'eleverna redan har frågetexten på annat håll. Raderna rensas automatiskt när formuläret skapas.')
     .setWrap(true).setFontStyle('italic').setBackground('#f3f3f3');
   sheet.setRowHeight(1, 60);
 
-  const headers = ['Fråga', 'Poäng'];
+  const headers = ['Fråga'];
   sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#cfe2f3');
   sheet.setFrozenRows(2);
   sheet.autoResizeColumns(1, headers.length);

@@ -4,9 +4,12 @@
  * Elever identifieras via verifierad e-post (Forms samlar in e-post automatiskt när
  * eleven är inloggad i skolans Google-konto) - ingen egen "Namn"-fråga behövs.
  *
- * Rättning sker INTE via kalkylarket. Efter att formuläret skapats svarar läraren på
- * det själv (precis som en elev) - det svaret blir facit som alla elevsvar jämförs
- * mot, för både flervalsfrågor och kortsvar. Se Results.gs för själva rättningen.
+ * Rättning av flervalsfrågor sker INTE via kalkylarket. Efter att formuläret skapats
+ * svarar läraren på det själv (precis som en elev) - det svaret blir facit som
+ * elevernas svar jämförs mot. Se Results.gs för själva rättningen.
+ *
+ * Kortsvar rättas inte alls - det är öppna frågor. Resultatsidan visar bara om en
+ * elev har svarat på formuläret eller inte (svaren går att läsa i svarsfliken).
  */
 
 function showNewFormWizard() {
@@ -46,14 +49,14 @@ function createFormFromWizard(options) {
   form.setCollectEmail(true); // Verifierad e-post = elevens identitet, ingen namnfråga behövs.
 
   let questionNumber = 0;
-  const itemsMeta = [];
+  const itemsMeta = []; // Bara flervalsfrågor - de är enda typen som poängsätts/rättas.
   mcRows.forEach(function (row) {
     questionNumber++;
     itemsMeta.push(addMultipleChoiceItem(form, row, questionNumber));
   });
   saRows.forEach(function (row) {
     questionNumber++;
-    itemsMeta.push(addShortAnswerItem(form, row, questionNumber));
+    addShortAnswerItem(form, row, questionNumber);
   });
 
   const responseSheetName = linkFormToSpreadsheet(form, ss, name);
@@ -93,7 +96,6 @@ function addMultipleChoiceItem(form, row, questionNumber) {
 function addShortAnswerItem(form, row, questionNumber) {
   const item = form.addTextItem();
   item.setTitle(questionTitle(row.question, questionNumber)).setRequired(false);
-  return { itemId: item.getId(), points: row.points };
 }
 
 function linkFormToSpreadsheet(form, ss, name) {
@@ -178,13 +180,12 @@ function readMultipleChoiceRows(sheet) {
 function readShortAnswerRows(sheet) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 3) return [];
-  const values = sheet.getRange(3, 1, lastRow - 2, 2).getValues(); // Fråga, Poäng
+  const values = sheet.getRange(3, 1, lastRow - 2, 1).getValues(); // Fråga
   const rows = [];
   values.forEach(function (v) {
     const question = String(v[0]).trim();
-    if (!question) return; // Kortsvar kräver minst ett tecken (text eller ett nummer) i Fråga-fältet.
-    const points = Number(v[1]) > 0 ? Number(v[1]) : 1;
-    rows.push({ question: question, points: points });
+    if (!question) return; // Kräver minst ett tecken (text eller ett nummer) i Fråga-fältet.
+    rows.push({ question: question });
   });
   return rows;
 }

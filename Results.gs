@@ -3,14 +3,18 @@
  * formulär i registret och räkna om aktuella poäng. Elever identifieras via
  * verifierad e-post.
  *
- * Rättning: facit är INTE inskrivet i kalkylarket i förväg. Istället svarar läraren
- * på formuläret själv (samma Google-konto som skapade det) - det svaret hittas
- * automatiskt bland inkomna svar (matchas mot "Skapad av (e-post)" i registret) och
- * används som facit för både flervalsfrågor och kortsvar. Elevernas svar jämförs mot
- * facit-svaret (exakt text, oberoende av stor/liten bokstav och mellanslag). Svarar
- * läraren om senare (för att rätta ett misstag) används alltid det senaste svaret.
- * Har läraren inte svarat på ett formulär än visas "Väntar på facit" istället för
- * poäng för det formuläret.
+ * Rättning av FLERVALSFRÅGOR: facit är INTE inskrivet i kalkylarket i förväg. Istället
+ * svarar läraren på formuläret själv (samma Google-konto som skapade det) - det svaret
+ * hittas automatiskt bland inkomna svar (matchas mot "Skapad av (e-post)" i registret)
+ * och används som facit. Elevernas svar jämförs mot facit-svaret (exakt text, oberoende
+ * av stor/liten bokstav och mellanslag). Svarar läraren om senare (för att rätta ett
+ * misstag) används alltid det senaste svaret. Har läraren inte svarat på ett formulär
+ * med flervalsfrågor än visas "Väntar på facit" istället för poäng för det formuläret.
+ *
+ * KORTSVAR rättas inte alls - de är öppna frågor utan facit och poäng. Ett formulär
+ * som bara innehåller kortsvar (inga flervalsfrågor) visar istället "✓" för varje
+ * elev som har svarat, så läraren snabbt ser vilka som svarat eller inte. Svaren i
+ * sig går att läsa i respektive "Svar - [formulärnamn]"-flik.
  *
  * Färgkodning (samma tröskelvärden för både elevresultat och frågeanalys):
  *   < 50 %  röd    (svårt / behöver stöd)
@@ -94,6 +98,20 @@ function updateResultsSheet() {
     const pointsMap = parsePointsMap(r[11]);
     const registerRowNum = idx + 2;
     const responses = form.getResponses();
+    const hasGradedItems = Object.keys(pointsMap).length > 0;
+
+    if (!hasGradedItems) {
+      // Rena kortsvarsformulär (inga flervalsfrågor) rättas inte - visa bara vilka som svarat.
+      register.getRange(registerRowNum, 10, 1, 2).setValues([['Ej tillämpligt', '']]);
+      responses.forEach(function (response) {
+        const email = String(response.getRespondentEmail() || '').trim().toLowerCase();
+        if (!email || email === creatorEmail) return;
+        if (!studentScores[email]) studentScores[email] = {};
+        studentScores[email][name] = { label: '✓' };
+      });
+      return;
+    }
+
     const facitResponse = findFacitResponse(responses, creatorEmail);
 
     if (!facitResponse) {

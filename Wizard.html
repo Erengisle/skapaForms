@@ -27,7 +27,7 @@
     <div class="step">Steg 2: Kontrollera antal frågor</div>
     <p>Flervalsfrågor: <b><?= mcCount ?></b> st &nbsp;|&nbsp; Kortsvarsfrågor: <b><?= saCount ?></b> st</p>
     <p class="hint">Frågorna hämtas från flikarna "Flervalsfrågor" och "Kortsvar". Stäng guiden och fyll på där om antalet inte stämmer.
-      Rätt svar anges inte i arket - efter att formuläret skapats svarar du på det själv, och ditt svar blir facit.</p>
+      Flervalsfrågor rättas mot ditt eget svar (facit) - se nästa steg. Kortsvar rättas inte; resultatsidan visar bara om eleven svarat.</p>
 
     <button id="createBtn" onclick="createForm()">Skapa formulär</button>
     <div id="error"></div>
@@ -35,7 +35,7 @@
 
   <div id="success">
     <h3>✅ Formuläret är skapat!</h3>
-    <div class="facitNote">👉 Nästa steg: Öppna formuläret och svara på det själv, precis som en elev. Ditt svar blir facit som elevernas svar rättas mot.</div>
+    <div class="facitNote">👉 Nästa steg (bara om formuläret har flervalsfrågor): Öppna formuläret och svara på det själv, precis som en elev. Ditt svar blir facit som elevernas svar rättas mot.</div>
     <a id="publishLink" target="_blank">Öppna formuläret</a>
     <a id="editLink" target="_blank">Redigera formuläret</a>
     <p class="hint">Svaren hamnar i fliken "<span id="sheetName"></span>" i det här kalkylarket.</p>
