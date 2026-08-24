@@ -29,6 +29,9 @@ en sammanställning av elevernas poäng.
 7. Klart! Arket har nu flikarna **Flervalsfrågor**, **Kortsvar** och **📊 Resultat**
    (samt en dold flik **Formulärregister**).
 
+> **Alternativ:** Använder du `clasp` (Googles CLI för Apps Script) kan du
+> slippa klistra in filerna för hand - se [docs/clasp-guide.md](docs/clasp-guide.md).
+
 ## Så använder en lärare mallen
 
 1. Fyll i frågor i flikarna **Flervalsfrågor** och/eller **Kortsvar** - en rad per
