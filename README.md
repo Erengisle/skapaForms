@@ -40,12 +40,15 @@ en sammanställning av elevernas poäng.
    frågan får då rubriken "Fråga 3" i formuläret. På flervalsfrågor anger du gärna
    en **Poäng** per fråga (annars räknas frågan som 1 poäng värd). Rätt svar anges
    **inte** i arket.
-2. Öppna **Skapa Formulär > Nytt formulär (guide)** i menyn, namnge formuläret och
-   kontrollera att antalet frågor stämmer.
+2. Öppna **Skapa Formulär > Nytt formulär (guide)** i menyn. Guiden visar direkt
+   hur många frågor som hittats i de två flikarna - stämmer inte antalet, gå till
+   fliken, fyll på och klicka "🔄 Uppdatera" i guiden (du behöver inte stänga den).
+   Namnge sedan formuläret och klicka "Skapa formulär".
 3. Formuläret skapas automatiskt i samma Drive-mapp som kalkylarket, och svaren
-   länkas till en ny flik i samma ark ("Svar - [formulärnamn]"). Eleverna
-   identifieras via sin **verifierade e-post** (Forms samlar in den automatiskt
-   när eleven svarar inloggad) - ingen namnfråga behövs.
+   länkas till en ny flik i samma ark ("Svar - [formulärnamn]"). Formuläret ställs in
+   på **Samla in e-postadresser: Verifierad** - eleven måste logga in med sitt
+   Google-konto för att svara, och e-posten hämtas då automatiskt utan att eleven
+   skriver in den själv - ingen namnfråga behövs.
 4. **Viktigt, bara om formuläret har flervalsfrågor:** Öppna formuläret och svara på
    det själv, precis som en elev, med **samma Google-konto** som skapade formuläret.
    Ditt svar blir facit som elevernas svar på flervalsfrågorna rättas mot. Svarar du
@@ -90,9 +93,10 @@ egen tom start (inga gamla formulär i registret) men samma script, meny och fli
 
 ## Kända begränsningar
 
-- **Elevidentifiering** kräver att eleven svarar inloggad i sitt Google-konto, så att
-  e-posten blir verifierad (`setCollectEmail`). Om ett formulär delas öppet utanför
-  skolans domän kan e-postadressen inte verifieras.
+- **Elevidentifiering** kräver att eleven svarar inloggad i sitt Google-konto
+  (formulärinställningen "Samla in e-postadresser: Verifierad",
+  `setEmailCollectionType(FormApp.EmailCollectionType.VERIFIED)`). Om ett formulär
+  delas öppet utanför skolans domän kan e-postadressen inte verifieras.
 - **Facit för flervalsfrågor kräver att läraren svarar själv.** Tills dess visas
   "Väntar på facit" och inga poäng räknas ut. Facit hämtas genom att hitta det svar
   som kommit in från samma Google-konto som skapade formuläret - svarar läraren från

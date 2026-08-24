@@ -6,11 +6,17 @@
     body { font-family: Arial, sans-serif; font-size: 13px; padding: 4px 14px 14px; }
     label { display: block; margin-top: 14px; font-weight: bold; }
     input[type=text] { width: 100%; padding: 6px; box-sizing: border-box; margin-top: 4px; font-size: 13px; }
+    input[type=text]:disabled { background: #f3f3f3; color: #999; }
     .hint { color: #666; font-size: 12px; margin-top: 4px; }
     .step { background: #f3f3f3; border-radius: 6px; padding: 8px 10px; margin-top: 14px; font-weight: bold; }
-    button { margin-top: 20px; padding: 9px 18px; background: #34a853; color: #fff; border: none;
+    .counts { margin-top: 10px; }
+    .counts button { margin-left: 10px; padding: 3px 9px; font-size: 12px; background: #fff; color: #333;
+                      border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+    .warning { background: #fce8e6; border: 1px solid #d93025; border-radius: 6px; padding: 10px 12px;
+               margin-top: 10px; color: #a50e0e; display: none; }
+    #createBtn { margin-top: 20px; padding: 9px 18px; background: #34a853; color: #fff; border: none;
              border-radius: 4px; cursor: pointer; font-size: 13px; }
-    button:disabled { background: #aaa; cursor: default; }
+    #createBtn:disabled { background: #aaa; cursor: default; }
     #error { color: #c00; margin-top: 12px; display: none; }
     #success { display: none; }
     #success a { display: block; margin-top: 8px; color: #1155cc; }
@@ -20,14 +26,22 @@
 </head>
 <body>
   <div id="formWizard">
-    <div class="step">Steg 1: Namnge formuläret</div>
+    <div class="step">Steg 1: Kontrollera frågorna</div>
+    <p class="hint">Frågorna hämtas från flikarna <b>"Flervalsfrågor"</b> och <b>"Kortsvar"</b> i kalkylarket.
+      Skriv dina frågor där (en rad per fråga) <u>innan</u> du skapar formuläret.</p>
+    <p class="counts">
+      Flervalsfrågor: <b id="mcCountLabel"><?= mcCount ?></b> st &nbsp;|&nbsp;
+      Kortsvarsfrågor: <b id="saCountLabel"><?= saCount ?></b> st
+      <button type="button" id="refreshBtn" onclick="refreshCounts()">🔄 Uppdatera</button>
+    </p>
+    <div id="noQuestionsWarning" class="warning">
+      Inga frågor hittades än. Du behöver <b>inte</b> stänga den här rutan - gå till fliken
+      "Flervalsfrågor" eller "Kortsvar", fyll i minst en fråga, och klicka sedan på "🔄 Uppdatera" ovan.
+    </div>
+
+    <div class="step">Steg 2: Namnge formuläret</div>
     <label for="name">Formulärets namn</label>
     <input type="text" id="name" placeholder="T.ex. Kapitel 3 - Läxförhör">
-
-    <div class="step">Steg 2: Kontrollera antal frågor</div>
-    <p>Flervalsfrågor: <b><?= mcCount ?></b> st &nbsp;|&nbsp; Kortsvarsfrågor: <b><?= saCount ?></b> st</p>
-    <p class="hint">Frågorna hämtas från flikarna "Flervalsfrågor" och "Kortsvar". Stäng guiden och fyll på där om antalet inte stämmer.
-      Flervalsfrågor rättas mot ditt eget svar (facit) - se nästa steg. Kortsvar rättas inte; resultatsidan visar bara om eleven svarat.</p>
 
     <button id="createBtn" onclick="createForm()">Skapa formulär</button>
     <div id="error"></div>
@@ -43,6 +57,38 @@
   </div>
 
   <script>
+    let mcCount = <?= mcCount ?>;
+    let saCount = <?= saCount ?>;
+    updateQuestionState();
+
+    function updateQuestionState() {
+      document.getElementById('mcCountLabel').textContent = mcCount;
+      document.getElementById('saCountLabel').textContent = saCount;
+      const hasQuestions = (mcCount + saCount) > 0;
+      document.getElementById('noQuestionsWarning').style.display = hasQuestions ? 'none' : 'block';
+      document.getElementById('name').disabled = !hasQuestions;
+      document.getElementById('createBtn').disabled = !hasQuestions;
+    }
+
+    function refreshCounts() {
+      const btn = document.getElementById('refreshBtn');
+      btn.disabled = true;
+      btn.textContent = '...';
+      google.script.run
+        .withSuccessHandler(function (counts) {
+          mcCount = counts.mcCount;
+          saCount = counts.saCount;
+          updateQuestionState();
+          btn.disabled = false;
+          btn.textContent = '🔄 Uppdatera';
+        })
+        .withFailureHandler(function () {
+          btn.disabled = false;
+          btn.textContent = '🔄 Uppdatera';
+        })
+        .getQuestionCounts();
+    }
+
     function createForm() {
       const btn = document.getElementById('createBtn');
       const errorBox = document.getElementById('error');

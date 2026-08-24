@@ -37,7 +37,8 @@ function showHelp() {
     'som en elev, med samma Google-konto som skapade formuläret. Ditt svar blir facit som elevernas svar rättas ' +
     'mot. Svarar du fel av misstag går det bra att svara om - senaste svaret gäller.</li>' +
     '<li>Formuläret skapas i samma Drive-mapp som kalkylarket. Svaren hamnar automatiskt i en ny flik här i arket. ' +
-    'Eleverna identifieras via sin verifierade e-post - ingen namnfråga behövs.</li>' +
+    'Eleverna måste logga in med sitt Google-konto för att svara - e-posten hämtas då automatiskt (verifierad), ' +
+    'ingen namnfråga eller e-postfråga behövs.</li>' +
     '<li>Kortsvar rättas inte - det är öppna frågor. På resultatsidan ser du om en elev har svarat eller inte; ' +
     'själva svaren läser du i formulärets svarsflik.</li>' +
     '<li>Klicka på <b>Uppdatera resultatsidan</b> när du vill se en sammanställning per elev, över alla formulär. ' +

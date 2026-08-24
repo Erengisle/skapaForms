@@ -10,6 +10,12 @@ mallen skapades.
 från datorn till ett Apps Script-projekt, istället för att du klistrar in dem
 för hand i webbläsaren.
 
+> ⚠️ **Kräver att du kan installera program lokalt.** Många skoldatorer (t.ex.
+> Chromebooks eller hanterade Windows-datorer) tillåter inte att elever eller
+> personal installerar Node.js/npm själva. Har du inte den möjligheten - eller
+> är osäker - använd copy-paste-metoden i huvud-READMEn istället. Den kräver
+> ingenting utöver en webbläsare.
+
 ## Förutsättningar
 
 - [Node.js](https://nodejs.org) installerat (clasp är ett npm-paket).

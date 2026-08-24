@@ -1,8 +1,9 @@
 /**
  * Guiden för att skapa ett nytt formulär utifrån flikarna Flervalsfrågor och Kortsvar.
  *
- * Elever identifieras via verifierad e-post (Forms samlar in e-post automatiskt när
- * eleven är inloggad i skolans Google-konto) - ingen egen "Namn"-fråga behövs.
+ * Elever identifieras via verifierad e-post (formulärinställningen "Samla in
+ * e-postadresser: Verifierad" - eleven måste logga in med sitt Google-konto, och
+ * skriver aldrig in e-posten själv) - ingen egen "Namn"-fråga behövs.
  *
  * Rättning av flervalsfrågor sker INTE via kalkylarket. Efter att formuläret skapats
  * svarar läraren på det själv (precis som en elev) - det svaret blir facit som
@@ -13,16 +14,27 @@
  */
 
 function showNewFormWizard() {
-  const ss = SpreadsheetApp.getActive();
-  const mcCount = readMultipleChoiceRows(ss.getSheetByName(SHEET_NAMES.MULTIPLE_CHOICE)).length;
-  const saCount = readShortAnswerRows(ss.getSheetByName(SHEET_NAMES.SHORT_ANSWER)).length;
+  const counts = getQuestionCounts();
 
   const template = HtmlService.createTemplateFromFile('Wizard');
-  template.mcCount = mcCount;
-  template.saCount = saCount;
+  template.mcCount = counts.mcCount;
+  template.saCount = counts.saCount;
 
-  const html = template.evaluate().setWidth(480).setHeight(420);
+  const html = template.evaluate().setWidth(480).setHeight(480);
   SpreadsheetApp.getUi().showModalDialog(html, 'Nytt formulär – guide');
+}
+
+/**
+ * Anropas både när guiden öppnas och från "🔄 Uppdatera"-knappen i Wizard.html,
+ * så att läraren kan fylla i frågor i bakgrunden och uppdatera antalet utan att
+ * behöva stänga och öppna om hela guiden (och tappa ett redan ifyllt namn).
+ */
+function getQuestionCounts() {
+  const ss = SpreadsheetApp.getActive();
+  return {
+    mcCount: readMultipleChoiceRows(ss.getSheetByName(SHEET_NAMES.MULTIPLE_CHOICE)).length,
+    saCount: readShortAnswerRows(ss.getSheetByName(SHEET_NAMES.SHORT_ANSWER)).length
+  };
 }
 
 /**
@@ -46,7 +58,9 @@ function createFormFromWizard(options) {
   }
 
   const form = FormApp.create(name);
-  form.setCollectEmail(true); // Verifierad e-post = elevens identitet, ingen namnfråga behövs.
+  // VERIFIED (inte det föråldrade setCollectEmail) kräver Google-inloggning och hämtar
+  // e-posten automatiskt - eleven skriver aldrig in den själv.
+  form.setEmailCollectionType(FormApp.EmailCollectionType.VERIFIED);
 
   let questionNumber = 0;
   const itemsMeta = []; // Bara flervalsfrågor - de är enda typen som poängsätts/rättas.
