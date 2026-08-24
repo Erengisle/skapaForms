@@ -31,19 +31,36 @@ en sammanställning av elevernas poäng.
 
 ## Så använder en lärare mallen
 
-1. Fyll i frågor i flikarna **Flervalsfrågor** och/eller **Kortsvar** - en rad per fråga.
-   Ange rätt alternativ och poäng på de flervalsfrågor som ska rättas automatiskt.
-   Kortsvar är öppna frågor utan poäng.
+1. Fyll i frågor i flikarna **Flervalsfrågor** och/eller **Kortsvar** - en rad per
+   fråga. Skriv frågan i klartext i "Fråga"-kolumnen, eller bara ett nummer
+   (t.ex. `3`) om eleverna redan har frågetexten på annat håll (t.ex. ett papper) -
+   frågan får då rubriken "Fråga 3" i formuläret. Ange gärna en **Poäng** per fråga
+   (annars räknas frågan som 1 poäng värd). Rätt svar anges **inte** i arket.
 2. Öppna **Skapa Formulär > Nytt formulär (guide)** i menyn, namnge formuläret och
    kontrollera att antalet frågor stämmer.
 3. Formuläret skapas automatiskt i samma Drive-mapp som kalkylarket, och svaren
    länkas till en ny flik i samma ark ("Svar - [formulärnamn]"). Eleverna
    identifieras via sin **verifierade e-post** (Forms samlar in den automatiskt
    när eleven svarar inloggad) - ingen namnfråga behövs.
-4. Flervalsfrågor med angivet rätt alternativ rättas automatiskt av Google Forms.
-   Kortsvaren går att läsa i formulärets svarsflik, men rättas inte automatiskt.
+4. **Viktigt:** Öppna formuläret och svara på det själv, precis som en elev, med
+   **samma Google-konto** som skapade formuläret. Ditt svar blir facit - både
+   flervalsfrågor och kortsvar rättas genom att jämföra elevernas svar mot ditt.
+   Svarar du fel av misstag går det bra att svara om; senaste svaret från dig gäller.
 5. När som helst: klicka **Skapa Formulär > Uppdatera resultatsidan** för att bygga
    om **📊 Resultat** - en rad per elev, en kolumn per formulär, med aktuella poäng.
+   Facit hämtas automatiskt från ditt eget svar varje gång sidan uppdateras. Har du
+   inte svarat på formuläret än visas "Väntar på facit" istället för poäng.
+
+### Hur rättningen fungerar
+
+- Elevens svar på en fråga jämförs mot ditt (lärarens) svar på samma fråga -
+  **exakt textmatchning**, oberoende av stor/liten bokstav och mellanslag i
+  början/slutet. Det gäller både flervalsfrågor och kortsvar.
+- Poängen för en fråga hämtas från "Poäng"-kolumnen i arket vid formulärskapandet
+  (1 poäng om inget anges).
+- Ditt eget svar räknas aldrig med som en elev i resultatsammanställningen.
+- Formulärregistret (dold flik) visar per formulär om facit har hittats ("Facit
+  hämtat") och när.
 
 ### Färgkodning i Resultat
 
@@ -53,8 +70,8 @@ Samma färgskala används i två tabeller:
 - **Elevtabellen** (överst) - varje elevs poäng per formulär, för att snabbt se vilka
   elever som ligger lågt.
 - **Frågeanalysen** (under elevtabellen) - andel rätt per enskild fråga, summerat över
-  hela klassen, för att se vilka frågor som är extra svåra. Endast flervalsfrågor med
-  rätt svar visas här - kortsvar saknar facit och tas inte med.
+  hela klassen, för att se vilka frågor som är extra svåra. Bygger på samma
+  facit-jämförelse, så både flervalsfrågor och kortsvar visas här.
 
 ## Dela mallen till kollegor
 
@@ -66,16 +83,27 @@ egen tom start (inga gamla formulär i registret) men samma script, meny och fli
 - **Elevidentifiering** kräver att eleven svarar inloggad i sitt Google-konto, så att
   e-posten blir verifierad (`setCollectEmail`). Om ett formulär delas öppet utanför
   skolans domän kan e-postadressen inte verifieras.
-- **Kortsvar poängsätts inte.** De är öppna frågor - svaren går att läsa i formulärets
-  svarsflik i kalkylarket, men ingår inte i resultatsammanställningen.
+- **Facit kräver att läraren svarar själv.** Tills dess visas "Väntar på facit" och
+  inga poäng räknas ut. Facit hämtas genom att hitta det svar som kommit in från
+  samma Google-konto som skapade formuläret - svarar läraren från ett annat konto
+  räknas det inte som facit.
+- **Kortsvar rättas med exakt textmatchning** mot lärarens svar (oberoende av
+  stor/liten bokstav och mellanslag). Synonyma eller nästan rätt svar räknas inte
+  automatiskt som rätt - då får läraren själv titta i formulärets svarsflik.
 - **Mappval** är förenklat: formuläret sparas alltid i samma Drive-mapp som
   kalkylarket (en fullständig mappväljare kräver ett eget Google Cloud-projekt med
   Picker API, vilket bryter mot målet att mallen ska fungera direkt när den kopieras).
+- **En kopia av mallen per klass.** Det finns inget stöd för flera klasser i samma ark.
 
 ## Uppgraderar du en mall som redan testats?
 
-Formulärregistrets kolumner har ändrats. Om du redan har en flik
-**Formulärregister** från en tidigare version: visa den
-(**Skapa Formulär > Visa formulärregister**), radera fliken, och kör sedan
-**Skapa Formulär > Kontrollera/reparera mallen** för att skapa den på nytt med
-rätt kolumner. Den innehåller bara loggdata, inget som behöver sparas under test.
+Kolumnerna i flikarna har ändrats (facit anges inte längre i arket - se ovan). Om du
+redan har flikar från en tidigare version:
+
+1. **Flervalsfrågor:** ta bort kolumnen "Rätt alternativ (1-5)" om den finns kvar.
+2. **Kortsvar:** lägg till en kolumn "Poäng" efter "Fråga" om den saknas.
+3. **Formulärregister:** visa fliken (**Skapa Formulär > Visa formulärregister**),
+   radera den, och kör sedan **Skapa Formulär > Kontrollera/reparera mallen** för att
+   skapa den på nytt med rätt kolumner. Den innehåller bara loggdata, inget som
+   behöver sparas under test. Formulär som skapades före uppgraderingen känns inte
+   igen av den nya resultatsidan - skapa i så fall om dem.

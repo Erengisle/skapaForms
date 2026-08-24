@@ -4,9 +4,9 @@
  * Elever identifieras via verifierad e-post (Forms samlar in e-post automatiskt när
  * eleven är inloggad i skolans Google-konto) - ingen egen "Namn"-fråga behövs.
  *
- * Flervalsfrågor rättas via Google Forms inbyggda quiz-läge (rätt alternativ anges
- * i kalkylarket). Kortsvar är öppna frågor utan facit/poäng - svaren går att läsa
- * i formulärets svarsflik, men räknas inte in i resultatsammanställningen.
+ * Rättning sker INTE via kalkylarket. Efter att formuläret skapats svarar läraren på
+ * det själv (precis som en elev) - det svaret blir facit som alla elevsvar jämförs
+ * mot, för både flervalsfrågor och kortsvar. Se Results.gs för själva rättningen.
  */
 
 function showNewFormWizard() {
@@ -18,7 +18,7 @@ function showNewFormWizard() {
   template.mcCount = mcCount;
   template.saCount = saCount;
 
-  const html = template.evaluate().setWidth(480).setHeight(380);
+  const html = template.evaluate().setWidth(480).setHeight(420);
   SpreadsheetApp.getUi().showModalDialog(html, 'Nytt formulär – guide');
 }
 
@@ -42,18 +42,23 @@ function createFormFromWizard(options) {
     throw new Error('Lägg till minst en fråga i "Flervalsfrågor" eller "Kortsvar" innan du skapar formuläret.');
   }
 
-  const isQuiz = mcRows.some(function (r) { return r.isGraded; });
-
   const form = FormApp.create(name);
-  form.setIsQuiz(isQuiz);
   form.setCollectEmail(true); // Verifierad e-post = elevens identitet, ingen namnfråga behövs.
 
-  mcRows.forEach(function (row) { addMultipleChoiceItem(form, row); });
-  saRows.forEach(function (row) { addShortAnswerItem(form, row); });
+  let questionNumber = 0;
+  const itemsMeta = [];
+  mcRows.forEach(function (row) {
+    questionNumber++;
+    itemsMeta.push(addMultipleChoiceItem(form, row, questionNumber));
+  });
+  saRows.forEach(function (row) {
+    questionNumber++;
+    itemsMeta.push(addShortAnswerItem(form, row, questionNumber));
+  });
 
   const responseSheetName = linkFormToSpreadsheet(form, ss, name);
   moveFormToSpreadsheetFolder(form, ss);
-  logFormInRegister(ss, form, name, responseSheetName, isQuiz, mcRows.length, saRows.length);
+  logFormInRegister(ss, form, name, responseSheetName, mcRows.length, saRows.length, itemsMeta);
 
   clearWorkingRows(mcSheet, 3);
   clearWorkingRows(saSheet, 3);
@@ -65,20 +70,30 @@ function createFormFromWizard(options) {
   };
 }
 
-function addMultipleChoiceItem(form, row) {
-  const item = form.addMultipleChoiceItem();
-  item.setTitle(row.question).setRequired(true);
-  const choices = row.options.map(function (opt) {
-    return item.createChoice(opt.value, row.isGraded && opt.column === row.correctColumn);
-  });
-  item.setChoices(choices);
-  if (row.isGraded) {
-    item.setPoints(row.points);
-  }
+/**
+ * Frågans rubrik i formuläret. Skriver läraren bara ett nummer (t.ex. "7") används
+ * det numret rakt av ("Fråga 7") - praktiskt när eleverna redan har frågetexten på
+ * papper eller annat håll och numren behöver stämma med det. Lämnas fältet helt tomt
+ * används frågans ordningsnummer i formuläret istället.
+ */
+function questionTitle(raw, fallbackIndex) {
+  const trimmed = String(raw || '').trim();
+  if (trimmed === '') return 'Fråga ' + fallbackIndex;
+  if (/^\d+$/.test(trimmed)) return 'Fråga ' + trimmed;
+  return trimmed;
 }
 
-function addShortAnswerItem(form, row) {
-  form.addTextItem().setTitle(row.question).setRequired(false);
+function addMultipleChoiceItem(form, row, questionNumber) {
+  const item = form.addMultipleChoiceItem();
+  item.setTitle(questionTitle(row.question, questionNumber)).setRequired(true);
+  item.setChoices(row.options.map(function (opt) { return item.createChoice(opt); }));
+  return { itemId: item.getId(), points: row.points };
+}
+
+function addShortAnswerItem(form, row, questionNumber) {
+  const item = form.addTextItem();
+  item.setTitle(questionTitle(row.question, questionNumber)).setRequired(false);
+  return { itemId: item.getId(), points: row.points };
 }
 
 function linkFormToSpreadsheet(form, ss, name) {
@@ -122,12 +137,12 @@ function moveFormToSpreadsheetFolder(form, ss) {
   }
 }
 
-function logFormInRegister(ss, form, name, responseSheetName, isQuiz, mcCount, saCount) {
+function logFormInRegister(ss, form, name, responseSheetName, mcCount, saCount, itemsMeta) {
   const sheet = ss.getSheetByName(SHEET_NAMES.REGISTER);
   sheet.appendRow([
     form.getId(), name, new Date(), Session.getActiveUser().getEmail(),
     form.getEditUrl(), form.getPublishedUrl(), responseSheetName,
-    isQuiz ? 'Ja' : 'Nej', mcCount, saCount
+    mcCount, saCount, 'Nej', '', JSON.stringify(itemsMeta)
   ]);
 }
 
@@ -142,32 +157,20 @@ function clearWorkingRows(sheet, startRow) {
 function readMultipleChoiceRows(sheet) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 3) return [];
-  const values = sheet.getRange(3, 1, lastRow - 2, 8).getValues();
+  const values = sheet.getRange(3, 1, lastRow - 2, 7).getValues(); // Fråga, Alternativ 1-5, Poäng
   const rows = [];
   values.forEach(function (v) {
     const question = String(v[0]).trim();
-    if (!question) return;
 
-    // Alternativens kolumnnummer (1-5) bevaras även om ett alternativ mitt i är tomt,
-    // så att "Rätt alternativ"-numret alltid pekar på rätt kolumn.
     const options = [];
     for (let i = 0; i < 5; i++) {
       const value = String(v[1 + i]).trim();
-      if (value !== '') options.push({ value: value, column: i + 1 });
+      if (value !== '') options.push(value);
     }
     if (options.length < 2) return; // Hoppa över ofullständiga rader.
 
-    const correctColumn = Number(v[6]) || 0;
-    const points = Number(v[7]) || 0;
-    const hasValidAnswerKey = options.some(function (o) { return o.column === correctColumn; });
-
-    rows.push({
-      question: question,
-      options: options,
-      correctColumn: correctColumn,
-      points: points,
-      isGraded: hasValidAnswerKey && points > 0
-    });
+    const points = Number(v[6]) > 0 ? Number(v[6]) : 1;
+    rows.push({ question: question, options: options, points: points });
   });
   return rows;
 }
@@ -175,12 +178,13 @@ function readMultipleChoiceRows(sheet) {
 function readShortAnswerRows(sheet) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 3) return [];
-  const values = sheet.getRange(3, 1, lastRow - 2, 1).getValues();
+  const values = sheet.getRange(3, 1, lastRow - 2, 2).getValues(); // Fråga, Poäng
   const rows = [];
   values.forEach(function (v) {
     const question = String(v[0]).trim();
-    if (!question) return;
-    rows.push({ question: question });
+    if (!question) return; // Kortsvar kräver minst ett tecken (text eller ett nummer) i Fråga-fältet.
+    const points = Number(v[1]) > 0 ? Number(v[1]) : 1;
+    rows.push({ question: question, points: points });
   });
   return rows;
 }

@@ -1,9 +1,16 @@
 /**
  * Bygger om resultatsidan från grunden varje gång den anropas, genom att läsa alla
  * formulär i registret och räkna om aktuella poäng. Elever identifieras via
- * verifierad e-post. Endast flervalsfrågor med rätt svar räknas in i poängen -
- * kortsvar är öppna frågor utan facit och visas inte här (svaren finns i
- * respektive "Svar - [formulärnamn]"-flik).
+ * verifierad e-post.
+ *
+ * Rättning: facit är INTE inskrivet i kalkylarket i förväg. Istället svarar läraren
+ * på formuläret själv (samma Google-konto som skapade det) - det svaret hittas
+ * automatiskt bland inkomna svar (matchas mot "Skapad av (e-post)" i registret) och
+ * används som facit för både flervalsfrågor och kortsvar. Elevernas svar jämförs mot
+ * facit-svaret (exakt text, oberoende av stor/liten bokstav och mellanslag). Svarar
+ * läraren om senare (för att rätta ett misstag) används alltid det senaste svaret.
+ * Har läraren inte svarat på ett formulär än visas "Väntar på facit" istället för
+ * poäng för det formuläret.
  *
  * Färgkodning (samma tröskelvärden för både elevresultat och frågeanalys):
  *   < 50 %  röd    (svårt / behöver stöd)
@@ -21,6 +28,29 @@ function colorForPercentage(pct) {
   if (pct < 50) return RESULT_COLORS.RED;
   if (pct < 75) return RESULT_COLORS.YELLOW;
   return RESULT_COLORS.GREEN;
+}
+
+function normalizeAnswer(response) {
+  const value = Array.isArray(response) ? response.join(', ') : response;
+  return String(value || '').trim().toLowerCase();
+}
+
+function parsePointsMap(json) {
+  const map = {};
+  let list = [];
+  try { list = JSON.parse(json || '[]'); } catch (e) { list = []; }
+  list.forEach(function (entry) { map[entry.itemId] = entry.points; });
+  return map;
+}
+
+function findFacitResponse(responses, creatorEmail) {
+  if (!creatorEmail) return null;
+  const matches = responses.filter(function (r) {
+    return String(r.getRespondentEmail() || '').trim().toLowerCase() === creatorEmail;
+  });
+  if (!matches.length) return null;
+  matches.sort(function (a, b) { return b.getTimestamp() - a.getTimestamp(); });
+  return matches[0];
 }
 
 function updateResultsSheet() {
@@ -42,41 +72,83 @@ function updateResultsSheet() {
     return;
   }
 
-  const forms = register.getRange(2, 1, lastRow - 1, 2).getValues()
-    .map(function (r) { return { id: r[0], name: r[1] }; })
-    .filter(function (f) { return f.id; });
-
-  const studentScores = {}; // e-post -> { formulärnamn: {score,max} eller {label:'✓'} }
+  const registerValues = register.getRange(2, 1, lastRow - 1, 12).getValues();
+  const studentScores = {}; // e-post -> { formulärnamn: {score,max} eller {label:'...'} }
   const formHeaders = [];
   const questionStatsByForm = []; // { formName, stats: [{title, percentage, answered}] }
 
-  forms.forEach(function (f) {
+  registerValues.forEach(function (r, idx) {
+    const id = r[0];
+    const name = r[1];
+    const creatorEmail = String(r[3] || '').trim().toLowerCase();
+    if (!id) return;
+
     let form;
     try {
-      form = FormApp.openById(f.id);
+      form = FormApp.openById(id);
     } catch (e) {
       return; // Formuläret har troligen tagits bort manuellt i Drive.
     }
 
-    formHeaders.push(f.name);
-    const isQuiz = form.isQuiz();
-    const maxScore = isQuiz ? computeMaxScore(form) : 0;
-    const items = form.getItems();
+    formHeaders.push(name);
+    const pointsMap = parsePointsMap(r[11]);
+    const registerRowNum = idx + 2;
+    const responses = form.getResponses();
+    const facitResponse = findFacitResponse(responses, creatorEmail);
 
-    if (isQuiz) {
-      const stats = computeMultipleChoiceStats(form, items);
-      if (stats.length) questionStatsByForm.push({ formName: f.name, stats: stats });
+    if (!facitResponse) {
+      register.getRange(registerRowNum, 10, 1, 2).setValues([['Nej', '']]);
+      responses.forEach(function (response) {
+        const email = String(response.getRespondentEmail() || '').trim().toLowerCase();
+        if (!email || email === creatorEmail) return;
+        if (!studentScores[email]) studentScores[email] = {};
+        studentScores[email][name] = { label: 'Väntar på facit' };
+      });
+      return;
     }
 
-    form.getResponses().forEach(function (response) {
-      const email = String(response.getRespondentEmail() || '').trim().toLowerCase();
-      if (!email) return;
+    register.getRange(registerRowNum, 10, 1, 2).setValues([['Ja', facitResponse.getTimestamp()]]);
 
-      if (!studentScores[email]) studentScores[email] = {};
-      studentScores[email][f.name] = isQuiz
-        ? { score: response.getTotalScore(), max: maxScore }
-        : { label: '✓' };
+    const facitAnswers = {};
+    const itemTitles = {};
+    facitResponse.getItemResponses().forEach(function (ir) {
+      facitAnswers[ir.getItem().getId()] = normalizeAnswer(ir.getResponse());
+      itemTitles[ir.getItem().getId()] = ir.getItem().getTitle();
     });
+
+    const statsById = {};
+
+    responses.forEach(function (response) {
+      const email = String(response.getRespondentEmail() || '').trim().toLowerCase();
+      if (!email || email === creatorEmail) return;
+      if (!studentScores[email]) studentScores[email] = {};
+
+      let score = 0, max = 0;
+      response.getItemResponses().forEach(function (ir) {
+        const itemId = ir.getItem().getId();
+        const points = pointsMap[itemId];
+        if (!points || facitAnswers[itemId] === undefined) return;
+
+        max += points;
+        if (!statsById[itemId]) {
+          statsById[itemId] = { title: itemTitles[itemId], correct: 0, answered: 0 };
+        }
+        statsById[itemId].answered++;
+
+        if (normalizeAnswer(ir.getResponse()) === facitAnswers[itemId]) {
+          score += points;
+          statsById[itemId].correct++;
+        }
+      });
+
+      studentScores[email][name] = { score: score, max: max };
+    });
+
+    const stats = Object.keys(statsById).map(function (itemId) {
+      const s = statsById[itemId];
+      return { title: s.title, percentage: Math.round((s.correct / s.answered) * 100), answered: s.answered };
+    });
+    if (stats.length) questionStatsByForm.push({ formName: name, stats: stats });
   });
 
   const studentEmails = Object.keys(studentScores).sort(function (a, b) { return a.localeCompare(b, 'sv'); });
@@ -134,8 +206,8 @@ function updateResultsSheet() {
 
 /**
  * Skriver en tabell per formulär med andel rätt per fråga, så läraren snabbt ser
- * vilka frågor som är extra svåra för klassen. Endast flervalsfrågor med rätt
- * svar tas med - kortsvar saknar facit och kan inte räknas som rätt/fel.
+ * vilka frågor som är extra svåra för klassen. Bygger på samma facit-jämförelse som
+ * elevpoängen, så både flervalsfrågor och kortsvar tas med här.
  */
 function writeQuestionAnalysis(sheet, startRow, questionStatsByForm) {
   if (!questionStatsByForm.length) return;
@@ -162,48 +234,4 @@ function writeQuestionAnalysis(sheet, startRow, questionStatsByForm) {
   });
 
   sheet.autoResizeColumns(1, 3);
-}
-
-function computeMaxScore(form) {
-  let max = 0;
-  form.getItems().forEach(function (item) {
-    try {
-      const type = item.getType();
-      if (type === FormApp.ItemType.MULTIPLE_CHOICE) {
-        max += item.asMultipleChoiceItem().getPoints();
-      } else if (type === FormApp.ItemType.CHECKBOX) {
-        max += item.asCheckboxItem().getPoints();
-      }
-    } catch (e) {
-      // Icke-poängsatta objekttyper ignoreras.
-    }
-  });
-  return max;
-}
-
-function computeMultipleChoiceStats(form, items) {
-  const responses = form.getResponses();
-  const stats = [];
-
-  items.forEach(function (item) {
-    if (item.getType() !== FormApp.ItemType.MULTIPLE_CHOICE) return;
-    let maxPoints = 0;
-    try { maxPoints = item.asMultipleChoiceItem().getPoints(); } catch (e) {}
-    if (maxPoints <= 0) return;
-
-    let totalScore = 0, answered = 0;
-    responses.forEach(function (response) {
-      const ir = response.getResponseForItem(item);
-      if (!ir) return;
-      const score = ir.getScore();
-      if (score === null || score === undefined) return;
-      totalScore += score;
-      answered++;
-    });
-    if (answered === 0) return;
-
-    stats.push({ title: item.getTitle(), percentage: Math.round((totalScore / (maxPoints * answered)) * 100), answered: answered });
-  });
-
-  return stats;
 }
