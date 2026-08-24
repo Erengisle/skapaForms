@@ -8,13 +8,14 @@ function setupMultipleChoiceSheet(ss) {
   const sheet = ss.insertSheet(SHEET_NAMES.MULTIPLE_CHOICE);
 
   sheet.getRange('A1:H1').merge()
-    .setValue('Bygg flervalsfrågor för NÄSTA formulär du skapar. Fyll i en rad per fråga (minst 2 alternativ). ' +
+    .setValue('Bygg flervalsfrågor för NÄSTA formulär du skapar. VIKTIGT: en rad räknas bara som en fråga om du ' +
+      'fyller i BÅDE Fråga-kolumnen OCH minst 2 av Alternativ-kolumnerna - annars hoppas raden tyst över. ' +
       'Skriv frågan i Fråga-kolumnen, eller bara ett nummer (t.ex. "3") om eleverna redan har frågetexten på ' +
       'annat håll - frågan får då rubriken "Fråga 3" i formuläret. Ange gärna Poäng (annars räknas frågan som ' +
       '1 poäng värd). Rätt svar anges INTE här - när formuläret är skapat öppnar du det och svarar på det själv; ' +
       'ditt svar blir facit som elevernas svar rättas mot. Raderna rensas automatiskt när formuläret skapas.')
     .setWrap(true).setFontStyle('italic').setBackground('#f3f3f3');
-  sheet.setRowHeight(1, 60);
+  sheet.setRowHeight(1, 74);
 
   const headers = ['Fråga', 'Alternativ 1', 'Alternativ 2', 'Alternativ 3', 'Alternativ 4', 'Alternativ 5', 'Poäng'];
   sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#d9ead3');

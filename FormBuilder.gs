@@ -19,6 +19,7 @@ function showNewFormWizard() {
   const template = HtmlService.createTemplateFromFile('Wizard');
   template.mcCount = counts.mcCount;
   template.saCount = counts.saCount;
+  template.mcIncompleteRows = counts.mcIncompleteRows;
 
   const html = template.evaluate().setWidth(480).setHeight(480);
   SpreadsheetApp.getUi().showModalDialog(html, 'Nytt formulär – guide');
@@ -28,13 +29,38 @@ function showNewFormWizard() {
  * Anropas både när guiden öppnas och från "🔄 Uppdatera"-knappen i Wizard.html,
  * så att läraren kan fylla i frågor i bakgrunden och uppdatera antalet utan att
  * behöva stänga och öppna om hela guiden (och tappa ett redan ifyllt namn).
+ *
+ * Skickar även med mcIncompleteRows: radnummer i Flervalsfrågor som har text i
+ * Fråga-kolumnen (eller något alternativ) men saknar minst 2 ifyllda alternativ -
+ * sådana rader räknas INTE med i mcCount, och utan den här listan är det osynligt
+ * för läraren varför en rad "försvinner".
  */
 function getQuestionCounts() {
   const ss = SpreadsheetApp.getActive();
   return {
     mcCount: readMultipleChoiceRows(ss.getSheetByName(SHEET_NAMES.MULTIPLE_CHOICE)).length,
-    saCount: readShortAnswerRows(ss.getSheetByName(SHEET_NAMES.SHORT_ANSWER)).length
+    saCount: readShortAnswerRows(ss.getSheetByName(SHEET_NAMES.SHORT_ANSWER)).length,
+    mcIncompleteRows: findIncompleteMultipleChoiceRows(ss.getSheetByName(SHEET_NAMES.MULTIPLE_CHOICE))
   };
+}
+
+function findIncompleteMultipleChoiceRows(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 3) return [];
+  const values = sheet.getRange(3, 1, lastRow - 2, 7).getValues();
+  const incompleteRows = [];
+  values.forEach(function (v, i) {
+    const question = String(v[0]).trim();
+    let optionCount = 0;
+    for (let j = 0; j < 5; j++) {
+      if (String(v[1 + j]).trim() !== '') optionCount++;
+    }
+    const hasAnyContent = question !== '' || optionCount > 0;
+    if (hasAnyContent && optionCount < 2) {
+      incompleteRows.push(3 + i); // Faktiskt radnummer i kalkylarket.
+    }
+  });
+  return incompleteRows;
 }
 
 /**
