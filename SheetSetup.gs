@@ -3,41 +3,31 @@
  * Alla funktioner är säkra att köra flera gånger - de gör ingenting om fliken redan finns.
  */
 
-function setupMultipleChoiceSheet(ss) {
-  if (ss.getSheetByName(SHEET_NAMES.MULTIPLE_CHOICE)) return;
-  const sheet = ss.insertSheet(SHEET_NAMES.MULTIPLE_CHOICE);
+function setupQuestionsSheet(ss) {
+  if (ss.getSheetByName(SHEET_NAMES.QUESTIONS)) return;
+  const sheet = ss.insertSheet(SHEET_NAMES.QUESTIONS);
 
   sheet.getRange('A1:H1').merge()
-    .setValue('Bygg flervalsfrågor för NÄSTA formulär du skapar. VIKTIGT: en rad räknas bara som en fråga om du ' +
-      'fyller i BÅDE Fråga-kolumnen OCH minst 2 av Alternativ-kolumnerna - annars hoppas raden tyst över. ' +
-      'Skriv frågan i Fråga-kolumnen, eller bara ett nummer (t.ex. "3") om eleverna redan har frågetexten på ' +
-      'annat håll - frågan får då rubriken "Fråga 3" i formuläret. Ange gärna Poäng (annars räknas frågan som ' +
-      '1 poäng värd). Rätt svar anges INTE här - när formuläret är skapat öppnar du det och svarar på det själv; ' +
-      'ditt svar blir facit som elevernas svar rättas mot. Raderna rensas automatiskt när formuläret skapas.')
+    .setValue('Bygg frågor för NÄSTA formulär du skapar - en rad per fråga. 1) Skriv frågan i Fråga-kolumnen, ' +
+      'eller bara ett nummer (t.ex. "3") om eleverna redan har frågetexten på annat håll. 2) Välj Typ: ' +
+      '"Flerval" (kräver minst 2 ifyllda Alternativ-kolumner) eller "Kortsvar" (öppen fråga, inga alternativ ' +
+      'behövs). Flervalsfrågor rättas automatiskt mot ditt eget svar på formuläret (facit) - ange gärna Poäng, ' +
+      'annars räknas frågan som 1 poäng värd. Kortsvar rättas inte - resultatsidan visar bara om eleven svarat. ' +
+      'Raderna rensas automatiskt när formuläret skapas.')
     .setWrap(true).setFontStyle('italic').setBackground('#f3f3f3');
-  sheet.setRowHeight(1, 74);
+  sheet.setRowHeight(1, 88);
 
-  const headers = ['Fråga', 'Alternativ 1', 'Alternativ 2', 'Alternativ 3', 'Alternativ 4', 'Alternativ 5', 'Poäng'];
+  const headers = ['Fråga', 'Typ', 'Alternativ 1', 'Alternativ 2', 'Alternativ 3', 'Alternativ 4', 'Alternativ 5', 'Poäng'];
   sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#d9ead3');
   sheet.setFrozenRows(2);
-  sheet.autoResizeColumns(1, headers.length);
-}
 
-function setupShortAnswerSheet(ss) {
-  if (ss.getSheetByName(SHEET_NAMES.SHORT_ANSWER)) return;
-  const sheet = ss.insertSheet(SHEET_NAMES.SHORT_ANSWER);
+  // Dropdown i Typ-kolumnen, förifylld för en hel klass rader i förväg.
+  const typeRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList([QUESTION_TYPES.MULTIPLE_CHOICE, QUESTION_TYPES.SHORT_ANSWER], true)
+    .setAllowInvalid(false)
+    .build();
+  sheet.getRange(3, 2, 300, 1).setDataValidation(typeRule);
 
-  sheet.getRange('A1').merge()
-    .setValue('Bygg kortsvarsfrågor för NÄSTA formulär du skapar. Det här är öppna frågor som INTE rättas ' +
-      'automatiskt - svaren går att läsa i formulärets svarsflik. På resultatsidan ser du bara om en elev har ' +
-      'svarat på formuläret eller inte. Skriv frågan i Fråga-kolumnen, eller bara ett nummer (t.ex. "3") om ' +
-      'eleverna redan har frågetexten på annat håll. Raderna rensas automatiskt när formuläret skapas.')
-    .setWrap(true).setFontStyle('italic').setBackground('#f3f3f3');
-  sheet.setRowHeight(1, 60);
-
-  const headers = ['Fråga'];
-  sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#cfe2f3');
-  sheet.setFrozenRows(2);
   sheet.autoResizeColumns(1, headers.length);
 }
 
@@ -48,7 +38,7 @@ function setupRegisterSheet(ss) {
   const headers = [
     'Formulär-ID', 'Namn', 'Skapat', 'Skapad av (e-post)', 'Redigeringslänk', 'Svara-länk',
     'Svarsflik', 'Antal flervalsfrågor', 'Antal kortsvarsfrågor', 'Facit hämtat', 'Facit hämtat (datum)',
-    'Frågedata (JSON)'
+    'Frågedata (JSON)', 'Mejlade svar-ID:n (JSON)'
   ];
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#e0e0e0');
   sheet.setFrozenRows(1);

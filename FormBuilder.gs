@@ -1,5 +1,5 @@
 /**
- * Guiden för att skapa ett nytt formulär utifrån flikarna Flervalsfrågor och Kortsvar.
+ * Guiden för att skapa ett nytt formulär utifrån fliken Frågor.
  *
  * Elever identifieras via verifierad e-post (formulärinställningen "Samla in
  * e-postadresser: Verifierad" - eleven måste logga in med sitt Google-konto, och
@@ -7,7 +7,8 @@
  *
  * Rättning av flervalsfrågor sker INTE via kalkylarket. Efter att formuläret skapats
  * svarar läraren på det själv (precis som en elev) - det svaret blir facit som
- * elevernas svar jämförs mot. Se Results.gs för själva rättningen.
+ * elevernas svar jämförs mot. Se Results.gs för själva rättningen, och Mailer.gs för
+ * det automatiska resultatmejlet till eleven.
  *
  * Kortsvar rättas inte alls - det är öppna frågor. Resultatsidan visar bara om en
  * elev har svarat på formuläret eller inte (svaren går att läsa i svarsfliken).
@@ -19,7 +20,7 @@ function showNewFormWizard() {
   const template = HtmlService.createTemplateFromFile('Wizard');
   template.mcCount = counts.mcCount;
   template.saCount = counts.saCount;
-  template.mcIncompleteRows = counts.mcIncompleteRows;
+  template.incompleteRows = counts.incompleteRows;
 
   const html = template.evaluate().setWidth(480).setHeight(480);
   SpreadsheetApp.getUi().showModalDialog(html, 'Nytt formulär – guide');
@@ -29,43 +30,20 @@ function showNewFormWizard() {
  * Anropas både när guiden öppnas och från "🔄 Uppdatera"-knappen i Wizard.html,
  * så att läraren kan fylla i frågor i bakgrunden och uppdatera antalet utan att
  * behöva stänga och öppna om hela guiden (och tappa ett redan ifyllt namn).
- *
- * Skickar även med mcIncompleteRows: radnummer i Flervalsfrågor som har text i
- * Fråga-kolumnen (eller något alternativ) men saknar minst 2 ifyllda alternativ -
- * sådana rader räknas INTE med i mcCount, och utan den här listan är det osynligt
- * för läraren varför en rad "försvinner".
  */
 function getQuestionCounts() {
   const ss = SpreadsheetApp.getActive();
+  const parsed = readQuestionRows(ss.getSheetByName(SHEET_NAMES.QUESTIONS));
   return {
-    mcCount: readMultipleChoiceRows(ss.getSheetByName(SHEET_NAMES.MULTIPLE_CHOICE)).length,
-    saCount: readShortAnswerRows(ss.getSheetByName(SHEET_NAMES.SHORT_ANSWER)).length,
-    mcIncompleteRows: findIncompleteMultipleChoiceRows(ss.getSheetByName(SHEET_NAMES.MULTIPLE_CHOICE))
+    mcCount: parsed.mcRows.length,
+    saCount: parsed.saRows.length,
+    incompleteRows: parsed.incompleteRows
   };
-}
-
-function findIncompleteMultipleChoiceRows(sheet) {
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 3) return [];
-  const values = sheet.getRange(3, 1, lastRow - 2, 7).getValues();
-  const incompleteRows = [];
-  values.forEach(function (v, i) {
-    const question = String(v[0]).trim();
-    let optionCount = 0;
-    for (let j = 0; j < 5; j++) {
-      if (String(v[1 + j]).trim() !== '') optionCount++;
-    }
-    const hasAnyContent = question !== '' || optionCount > 0;
-    if (hasAnyContent && optionCount < 2) {
-      incompleteRows.push(3 + i); // Faktiskt radnummer i kalkylarket.
-    }
-  });
-  return incompleteRows;
 }
 
 /**
  * Anropas från Wizard.html. Bygger formuläret, länkar svaren till detta ark,
- * flyttar formuläret till samma Drive-mapp, loggar i registret och rensar byggflikarna.
+ * flyttar formuläret till samma Drive-mapp, loggar i registret och rensar byggfliken.
  */
 function createFormFromWizard(options) {
   const name = (options && options.name || '').trim();
@@ -74,13 +52,13 @@ function createFormFromWizard(options) {
   }
 
   const ss = SpreadsheetApp.getActive();
-  const mcSheet = ss.getSheetByName(SHEET_NAMES.MULTIPLE_CHOICE);
-  const saSheet = ss.getSheetByName(SHEET_NAMES.SHORT_ANSWER);
-  const mcRows = readMultipleChoiceRows(mcSheet);
-  const saRows = readShortAnswerRows(saSheet);
+  const questionsSheet = ss.getSheetByName(SHEET_NAMES.QUESTIONS);
+  const parsed = readQuestionRows(questionsSheet);
+  const mcRows = parsed.mcRows;
+  const saRows = parsed.saRows;
 
   if (mcRows.length === 0 && saRows.length === 0) {
-    throw new Error('Lägg till minst en fråga i "Flervalsfrågor" eller "Kortsvar" innan du skapar formuläret.');
+    throw new Error('Lägg till minst en fråga i fliken "Frågor" innan du skapar formuläret.');
   }
 
   const form = FormApp.create(name);
@@ -103,8 +81,14 @@ function createFormFromWizard(options) {
   moveFormToSpreadsheetFolder(form, ss);
   logFormInRegister(ss, form, name, responseSheetName, mcRows.length, saRows.length, itemsMeta);
 
-  clearWorkingRows(mcSheet, 3);
-  clearWorkingRows(saSheet, 3);
+  try {
+    installMailTrigger(); // Se Mailer.gs. Görs här - garanterat fullt auktoriserad kontext.
+  } catch (err) {
+    // Misslyckas installationen (t.ex. redan max antal triggers) fungerar allt annat ändå -
+    // eleverna får bara inget automatiskt resultatmejl förrän triggern installerats manuellt.
+  }
+
+  clearWorkingRows(questionsSheet, 3);
 
   return {
     editUrl: form.getEditUrl(),
@@ -184,7 +168,7 @@ function logFormInRegister(ss, form, name, responseSheetName, mcCount, saCount, 
   sheet.appendRow([
     form.getId(), name, new Date(), Session.getActiveUser().getEmail(),
     form.getEditUrl(), form.getPublishedUrl(), responseSheetName,
-    mcCount, saCount, 'Nej', '', JSON.stringify(itemsMeta)
+    mcCount, saCount, 'Nej', '', JSON.stringify(itemsMeta), '[]'
   ]);
 }
 
@@ -196,36 +180,47 @@ function clearWorkingRows(sheet, startRow) {
   }
 }
 
-function readMultipleChoiceRows(sheet) {
+/**
+ * Läser fliken Frågor (Fråga, Typ, Alternativ 1-5, Poäng) och delar upp raderna i
+ * flervalsfrågor och kortsvarsfrågor utifrån Typ-kolumnen.
+ *
+ * incompleteRows listar radnummer som har NÅGOT innehåll men inte kan användas:
+ * antingen saknas Typ, eller så är Typ "Flerval" men färre än 2 alternativ är
+ * ifyllda. Utan den här listan försvinner sådana rader helt tyst - se Wizard.html.
+ */
+function readQuestionRows(sheet) {
   const lastRow = sheet.getLastRow();
-  if (lastRow < 3) return [];
-  const values = sheet.getRange(3, 1, lastRow - 2, 7).getValues(); // Fråga, Alternativ 1-5, Poäng
-  const rows = [];
-  values.forEach(function (v) {
+  if (lastRow < 3) return { mcRows: [], saRows: [], incompleteRows: [] };
+
+  const values = sheet.getRange(3, 1, lastRow - 2, 8).getValues(); // Fråga, Typ, Alternativ 1-5, Poäng
+  const mcRows = [];
+  const saRows = [];
+  const incompleteRows = [];
+
+  values.forEach(function (v, i) {
+    const rowNum = 3 + i;
     const question = String(v[0]).trim();
+    const type = String(v[1]).trim();
 
     const options = [];
-    for (let i = 0; i < 5; i++) {
-      const value = String(v[1 + i]).trim();
+    for (let j = 0; j < 5; j++) {
+      const value = String(v[2 + j]).trim();
       if (value !== '') options.push(value);
     }
-    if (options.length < 2) return; // Hoppa över ofullständiga rader.
+    const hasAnyContent = question !== '' || type !== '' || options.length > 0;
+    if (!hasAnyContent) return; // Helt tom rad.
 
-    const points = Number(v[6]) > 0 ? Number(v[6]) : 1;
-    rows.push({ question: question, options: options, points: points });
+    if (type === QUESTION_TYPES.MULTIPLE_CHOICE) {
+      if (options.length < 2) { incompleteRows.push(rowNum); return; }
+      const points = Number(v[7]) > 0 ? Number(v[7]) : 1;
+      mcRows.push({ question: question, options: options, points: points });
+    } else if (type === QUESTION_TYPES.SHORT_ANSWER) {
+      if (!question) { incompleteRows.push(rowNum); return; }
+      saRows.push({ question: question });
+    } else {
+      incompleteRows.push(rowNum); // Ingen (giltig) Typ vald än.
+    }
   });
-  return rows;
-}
 
-function readShortAnswerRows(sheet) {
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 3) return [];
-  const values = sheet.getRange(3, 1, lastRow - 2, 1).getValues(); // Fråga
-  const rows = [];
-  values.forEach(function (v) {
-    const question = String(v[0]).trim();
-    if (!question) return; // Kräver minst ett tecken (text eller ett nummer) i Fråga-fältet.
-    rows.push({ question: question });
-  });
-  return rows;
+  return { mcRows: mcRows, saRows: saRows, incompleteRows: incompleteRows };
 }

@@ -64,6 +64,7 @@ cp /sökväg/till/skapaForms/Code.gs .
 cp /sökväg/till/skapaForms/SheetSetup.gs .
 cp /sökväg/till/skapaForms/FormBuilder.gs .
 cp /sökväg/till/skapaForms/Results.gs .
+cp /sökväg/till/skapaForms/Mailer.gs .
 cp /sökväg/till/skapaForms/Wizard.html .
 cp /sökväg/till/skapaForms/appsscript.json .
 ```

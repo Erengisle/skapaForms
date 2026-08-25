@@ -29,8 +29,8 @@
 <body>
   <div id="formWizard">
     <div class="step">Steg 1: Kontrollera frågorna</div>
-    <p class="hint">Frågorna hämtas från flikarna <b>"Flervalsfrågor"</b> och <b>"Kortsvar"</b> i kalkylarket.
-      Skriv dina frågor där (en rad per fråga) <u>innan</u> du skapar formuläret.</p>
+    <p class="hint">Frågorna hämtas från fliken <b>"Frågor"</b> i kalkylarket: skriv en fråga (eller ett nummer)
+      per rad och välj Typ - Flerval eller Kortsvar - <u>innan</u> du skapar formuläret.</p>
     <p class="counts">
       Flervalsfrågor: <b id="mcCountLabel"><?= mcCount ?></b> st &nbsp;|&nbsp;
       Kortsvarsfrågor: <b id="saCountLabel"><?= saCount ?></b> st
@@ -38,7 +38,7 @@
     </p>
     <div id="noQuestionsWarning" class="warning">
       Inga frågor hittades än. Du behöver <b>inte</b> stänga den här rutan - gå till fliken
-      "Flervalsfrågor" eller "Kortsvar", fyll i minst en fråga, och klicka sedan på "🔄 Uppdatera" ovan.
+      "Frågor", fyll i minst en fråga och välj Typ, och klicka sedan på "🔄 Uppdatera" ovan.
     </div>
     <div id="incompleteRowsWarning" class="caution"></div>
 
@@ -52,7 +52,7 @@
 
   <div id="success">
     <h3>✅ Formuläret är skapat!</h3>
-    <div class="facitNote">👉 Nästa steg (bara om formuläret har flervalsfrågor): Öppna formuläret och svara på det själv, precis som en elev. Ditt svar blir facit som elevernas svar rättas mot.</div>
+    <div class="facitNote">👉 Nästa steg (bara om formuläret har flervalsfrågor): Öppna formuläret och svara på det själv, precis som en elev. Ditt svar blir facit som elevernas svar rättas mot - och eleverna får då automatiskt ett mejl med sitt resultat.</div>
     <a id="publishLink" target="_blank">Öppna formuläret</a>
     <a id="editLink" target="_blank">Redigera formuläret</a>
     <p class="hint">Svaren hamnar i fliken "<span id="sheetName"></span>" i det här kalkylarket.</p>
@@ -62,7 +62,7 @@
   <script>
     let mcCount = <?= mcCount ?>;
     let saCount = <?= saCount ?>;
-    let mcIncompleteRows = <?!= JSON.stringify(mcIncompleteRows) ?>;
+    let incompleteRows = <?!= JSON.stringify(incompleteRows) ?>;
     updateQuestionState();
 
     function updateQuestionState() {
@@ -74,11 +74,11 @@
       document.getElementById('createBtn').disabled = !hasQuestions;
 
       const incompleteBox = document.getElementById('incompleteRowsWarning');
-      if (mcIncompleteRows.length > 0) {
-        const rowList = mcIncompleteRows.join(', ');
-        incompleteBox.innerHTML = '⚠️ ' + mcIncompleteRows.length + ' rad(er) i <b>Flervalsfrågor</b> (rad ' +
-          rowList + ') har en fråga ifylld men saknar minst 2 alternativ, så de räknas <b>inte</b> med. ' +
-          'Fyll i minst två Alternativ-kolumner på de raderna, eller radera dem, och klicka sedan "🔄 Uppdatera".';
+      if (incompleteRows.length > 0) {
+        const rowList = incompleteRows.join(', ');
+        incompleteBox.innerHTML = '⚠️ ' + incompleteRows.length + ' rad(er) i <b>Frågor</b> (rad ' +
+          rowList + ') är ofullständiga och räknas <b>inte</b> med. Kontrollera att Typ är vald (Flerval/Kortsvar) ' +
+          'och att flervalsfrågor har minst 2 ifyllda Alternativ-kolumner, och klicka sedan "🔄 Uppdatera".';
         incompleteBox.style.display = 'block';
       } else {
         incompleteBox.style.display = 'none';
@@ -93,7 +93,7 @@
         .withSuccessHandler(function (counts) {
           mcCount = counts.mcCount;
           saCount = counts.saCount;
-          mcIncompleteRows = counts.mcIncompleteRows;
+          incompleteRows = counts.incompleteRows;
           updateQuestionState();
           btn.disabled = false;
           btn.textContent = '🔄 Uppdatera';

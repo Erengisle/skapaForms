@@ -16,6 +16,9 @@
  * elev som har svarat, så läraren snabbt ser vilka som svarat eller inte. Svaren i
  * sig går att läsa i respektive "Svar - [formulärnamn]"-flik.
  *
+ * Se även Mailer.gs, som automatiskt mejlar varje elev sitt resultat på flervalsfrågorna
+ * så fort facit finns - bygger på samma facit-hämtning och poängberäkning som här.
+ *
  * Färgkodning (samma tröskelvärden för både elevresultat och frågeanalys):
  *   < 50 %  röd    (svårt / behöver stöd)
  *   50-74 % gul    (delvis)

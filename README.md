@@ -21,44 +21,71 @@ en sammanställning av elevernas poäng.
    - `SheetSetup.gs`
    - `FormBuilder.gs`
    - `Results.gs`
+   - `Mailer.gs`
    - `Wizard.html` (skapa som en HTML-fil, inte .gs)
 5. Spara projektet och ladda om kalkylarket i webbläsaren.
 6. En ny meny **"Skapa Formulär"** dyker upp. Klicka på valfritt menyval för att
-   godkänna de behörigheter Google frågar efter (Forms, Kalkylark, Drive) - detta
-   sker en gång per person som använder arket.
-7. Klart! Arket har nu flikarna **Flervalsfrågor**, **Kortsvar** och **📊 Resultat**
-   (samt en dold flik **Formulärregister**).
+   godkänna de behörigheter Google frågar efter (Forms, Kalkylark, Drive, Mejl) -
+   detta sker en gång per person som använder arket.
+7. Klart! Arket har nu flikarna **Frågor** och **📊 Resultat** (samt en dold flik
+   **Formulärregister**).
 
 > **Alternativ:** Använder du `clasp` (Googles CLI för Apps Script) kan du
 > slippa klistra in filerna för hand - se [docs/clasp-guide.md](docs/clasp-guide.md).
 
 ## Så använder en lärare mallen
 
-1. Fyll i frågor i flikarna **Flervalsfrågor** och/eller **Kortsvar** - en rad per
-   fråga. Skriv frågan i klartext i "Fråga"-kolumnen, eller bara ett nummer
-   (t.ex. `3`) om eleverna redan har frågetexten på annat håll (t.ex. ett papper) -
-   frågan får då rubriken "Fråga 3" i formuläret. På flervalsfrågor anger du gärna
-   en **Poäng** per fråga (annars räknas frågan som 1 poäng värd). Rätt svar anges
-   **inte** i arket.
-2. Öppna **Skapa Formulär > Nytt formulär (guide)** i menyn. Guiden visar direkt
-   hur många frågor som hittats i de två flikarna - stämmer inte antalet, gå till
-   fliken, fyll på och klicka "🔄 Uppdatera" i guiden (du behöver inte stänga den).
-   Namnge sedan formuläret och klicka "Skapa formulär".
-3. Formuläret skapas automatiskt i samma Drive-mapp som kalkylarket, och svaren
-   länkas till en ny flik i samma ark ("Svar - [formulärnamn]"). Formuläret ställs in
-   på **Samla in e-postadresser: Verifierad** - eleven måste logga in med sitt
-   Google-konto för att svara, och e-posten hämtas då automatiskt utan att eleven
-   skriver in den själv - ingen namnfråga behövs.
-4. **Viktigt, bara om formuläret har flervalsfrågor:** Öppna formuläret och svara på
-   det själv, precis som en elev, med **samma Google-konto** som skapade formuläret.
-   Ditt svar blir facit som elevernas svar på flervalsfrågorna rättas mot. Svarar du
-   fel av misstag går det bra att svara om; senaste svaret från dig gäller. Kortsvar
-   behöver du inte svara på - de rättas inte.
-5. När som helst: klicka **Skapa Formulär > Uppdatera resultatsidan** för att bygga
-   om **📊 Resultat** - en rad per elev, en kolumn per formulär, med aktuella poäng.
-   Facit för flervalsfrågor hämtas automatiskt från ditt eget svar varje gång sidan
-   uppdateras. Har du inte svarat på ett formulär med flervalsfrågor än visas
-   "Väntar på facit" istället för poäng.
+Arbetsgången är fyra steg: **skriv frågor → välj typ → skapa formuläret → svara
+själv (facit)**.
+
+1. Skriv frågor i fliken **Frågor** - en rad per fråga. Skriv frågan i klartext i
+   "Fråga"-kolumnen, eller bara ett nummer (t.ex. `3`) om eleverna redan har
+   frågetexten på annat håll (t.ex. ett papper) - frågan får då rubriken "Fråga 3"
+   i formuläret.
+2. Välj **Typ** för varje rad i dropdown-listan: **Flerval** (fyll då även i minst
+   2 av kolumnerna Alternativ 1-5, och gärna en **Poäng** - annars räknas frågan
+   som 1 poäng värd) eller **Kortsvar** (öppen fråga, inga alternativ behövs).
+   Rätt svar anges **inte** i arket för flervalsfrågor - det görs i steg 4.
+3. Öppna **Skapa Formulär > Nytt formulär (guide)** i menyn. Guiden visar direkt
+   hur många frågor av varje typ som hittats - stämmer inte antalet, eller varnar
+   guiden för ofullständiga rader, gå till fliken, rätta till och klicka
+   "🔄 Uppdatera" i guiden (du behöver inte stänga den). Namnge sedan formuläret
+   och klicka "Skapa formulär". Formuläret skapas automatiskt i samma Drive-mapp
+   som kalkylarket, och svaren länkas till en ny flik i samma ark
+   ("Svar - [formulärnamn]"). Formuläret ställs in på **Samla in e-postadresser:
+   Verifierad** - eleven måste logga in med sitt Google-konto för att svara, och
+   e-posten hämtas då automatiskt utan att eleven skriver in den själv.
+4. **Viktigt, bara om formuläret har flervalsfrågor:** Öppna formuläret och svara
+   på det själv, precis som en elev, med **samma Google-konto** som skapade
+   formuläret. Ditt svar blir facit som elevernas svar på flervalsfrågorna rättas
+   mot. Svarar du fel av misstag går det bra att svara om; senaste svaret från dig
+   gäller. Kortsvar behöver du inte svara på - de rättas inte.
+
+Därefter, när som helst:
+
+- Klicka **Skapa Formulär > Uppdatera resultatsidan** för att bygga om
+  **📊 Resultat** - en rad per elev, en kolumn per formulär, med aktuella poäng
+  (klassvis översikt) och en frågeanalys som visar vilka frågor klassen tyckte var
+  svårast. Facit för flervalsfrågor hämtas automatiskt från ditt eget svar varje
+  gång sidan uppdateras. Har du inte svarat på ett formulär med flervalsfrågor än
+  visas "Väntar på facit" istället för poäng.
+- **Eleven får automatiskt ett mejl med sitt resultat** på flervalsfrågorna, så
+  fort facit finns - se "Automatiska resultatmejl" nedan.
+
+### Automatiska resultatmejl
+
+Så fort en elev har svarat på ett formulär MED flervalsfrågor, och facit redan
+finns (du har själv svarat), skickar scriptet automatiskt ett mejl till eleven med
+poängen. Ordningen spelar ingen roll:
+
+- Svarar eleven **efter** att du har svarat: mejlet skickas direkt.
+- Svarar eleven **innan** du har svarat: inget mejl skickas då, men så fort du
+  sedan svarar (och facit finns) mejlas alla elever som redan svarat och väntar.
+
+Varje elevsvar mejlas bara **en gång** - rättar du ditt facit-svar i efterhand
+skickas inga nya mejl till elever som redan fått ett. Formulär som bara har
+kortsvar (inga flervalsfrågor) skickar inget mejl, eftersom de inte rättas och
+det inte finns något resultat att rapportera.
 
 ### Hur rättningen fungerar
 
@@ -79,12 +106,12 @@ en sammanställning av elevernas poäng.
 Poängceller färgas efter andel rätt: **röd** <50 %, **gul** 50-74 %, **grön** ≥75 %.
 Samma färgskala används i två tabeller:
 
-- **Elevtabellen** (överst) - varje elevs poäng per formulär, för att snabbt se vilka
-  elever som ligger lågt. Formulär utan flervalsfrågor visar "✓" istället för poäng
-  och färgas inte.
+- **Elevtabellen** (överst) - varje elevs poäng per formulär (individuellt), för
+  att snabbt se vilka elever som ligger lågt. Formulär utan flervalsfrågor visar
+  "✓" istället för poäng och färgas inte.
 - **Frågeanalysen** (under elevtabellen) - andel rätt per enskild flervalsfråga,
-  summerat över hela klassen, för att se vilka frågor som är extra svåra. Kortsvar
-  ingår inte här eftersom de inte rättas.
+  summerat över hela klassen (klassvis), för att se vilka frågor som är extra
+  svåra. Kortsvar ingår inte här eftersom de inte rättas.
 
 ## Dela mallen till kollegor
 
@@ -98,12 +125,18 @@ egen tom start (inga gamla formulär i registret) men samma script, meny och fli
   `setEmailCollectionType(FormApp.EmailCollectionType.VERIFIED)`). Om ett formulär
   delas öppet utanför skolans domän kan e-postadressen inte verifieras.
 - **Facit för flervalsfrågor kräver att läraren svarar själv.** Tills dess visas
-  "Väntar på facit" och inga poäng räknas ut. Facit hämtas genom att hitta det svar
-  som kommit in från samma Google-konto som skapade formuläret - svarar läraren från
-  ett annat konto räknas det inte som facit.
+  "Väntar på facit" och inga poäng räknas ut, och inga resultatmejl skickas.
+  Facit hämtas genom att hitta det svar som kommit in från samma Google-konto som
+  skapade formuläret - svarar läraren från ett annat konto räknas det inte som facit.
 - **Kortsvar poängsätts inte.** De är öppna frågor - svaren går att läsa i
   formulärets svarsflik i kalkylarket. Resultatsidan visar bara om eleven har
   svarat på formuläret eller inte, inte om svaret är "rätt".
+- **Resultatmejl skickas bara en gång per elevsvar.** Rättar du ditt facit-svar
+  efter att mejl redan skickats ut går inga nya mejl till de elever som redan
+  fått ett - de behöver då få rättningen muntligt eller via resultatsidan.
+- **Mejlkvot:** `MailApp` har en daglig kvot (cirka 100 mejl/dygn för vanliga
+  Google-konton, betydligt högre för skolkonton via Google Workspace). En enskild
+  klass ryms normalt gott och väl inom kvoten.
 - **Mappval** är förenklat: formuläret sparas alltid i samma Drive-mapp som
   kalkylarket (en fullständig mappväljare kräver ett eget Google Cloud-projekt med
   Picker API, vilket bryter mot målet att mallen ska fungera direkt när den kopieras).
@@ -111,14 +144,18 @@ egen tom start (inga gamla formulär i registret) men samma script, meny och fli
 
 ## Uppgraderar du en mall som redan testats?
 
-Kolumnerna i flikarna har ändrats (facit anges inte längre i arket - se ovan). Om du
-redan har flikar från en tidigare version:
+Flikstrukturen har ändrats - flikarna **Flervalsfrågor** och **Kortsvar** är
+ersatta av en enda flik **Frågor** med en Typ-kolumn. Om du redan har en äldre
+version av mallen:
 
-1. **Flervalsfrågor:** ta bort kolumnen "Rätt alternativ (1-5)" om den finns kvar.
-2. **Kortsvar:** ta bort kolumnen "Poäng" om den finns kvar - kortsvar ska bara ha
-   kolumnen "Fråga".
+1. Kör **Skapa Formulär > Kontrollera/reparera mallen** - det skapar den nya
+   fliken **Frågor** (de gamla flikarna påverkas inte och kan tas bort manuellt
+   när du inte längre behöver dem).
+2. Har du oskapade frågor kvar i de gamla flikarna: kopiera över dem rad för rad
+   till **Frågor** och välj Typ (Flerval/Kortsvar) för varje rad.
 3. **Formulärregister:** visa fliken (**Skapa Formulär > Visa formulärregister**),
    radera den, och kör sedan **Skapa Formulär > Kontrollera/reparera mallen** för att
-   skapa den på nytt med rätt kolumner. Den innehåller bara loggdata, inget som
-   behöver sparas under test. Formulär som skapades före uppgraderingen känns inte
-   igen av den nya resultatsidan - skapa i så fall om dem.
+   skapa den på nytt med rätt kolumner (bl.a. den nya kolumnen för resultatmejl).
+   Den innehåller bara loggdata, inget som behöver sparas under test. Formulär som
+   skapades före uppgraderingen känns inte igen av den nya resultatsidan eller av
+   resultatmejlen - skapa i så fall om dem.
