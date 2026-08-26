@@ -181,7 +181,7 @@ function clearWorkingRows(sheet, startRow) {
 }
 
 /**
- * Läser fliken Frågor (Fråga, Typ, Alternativ 1-5, Poäng) och delar upp raderna i
+ * Läser fliken Frågor (Fråga, Typ, Alternativ 1-5) och delar upp raderna i
  * flervalsfrågor och kortsvarsfrågor utifrån Typ-kolumnen.
  *
  * incompleteRows listar radnummer som har NÅGOT innehåll men inte kan användas:
@@ -192,7 +192,7 @@ function readQuestionRows(sheet) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 3) return { mcRows: [], saRows: [], incompleteRows: [] };
 
-  const values = sheet.getRange(3, 1, lastRow - 2, 8).getValues(); // Fråga, Typ, Alternativ 1-5, Poäng
+  const values = sheet.getRange(3, 1, lastRow - 2, 7).getValues(); // Fråga, Typ, Alternativ 1-5
   const mcRows = [];
   const saRows = [];
   const incompleteRows = [];
@@ -212,8 +212,7 @@ function readQuestionRows(sheet) {
 
     if (type === QUESTION_TYPES.MULTIPLE_CHOICE) {
       if (options.length < 2) { incompleteRows.push(rowNum); return; }
-      const points = Number(v[7]) > 0 ? Number(v[7]) : 1;
-      mcRows.push({ question: question, options: options, points: points });
+      mcRows.push({ question: question, options: options, points: 1 }); // Varje flervalsfråga är alltid värd 1 poäng.
     } else if (type === QUESTION_TYPES.SHORT_ANSWER) {
       if (!question) { incompleteRows.push(rowNum); return; }
       saRows.push({ question: question });
