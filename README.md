@@ -43,9 +43,9 @@ själv (facit)**.
    frågetexten på annat håll (t.ex. ett papper) - frågan får då rubriken "Fråga 3"
    i formuläret.
 2. Välj **Typ** för varje rad i dropdown-listan: **Flerval** (fyll då även i minst
-   2 av kolumnerna Alternativ 1-5, och gärna en **Poäng** - annars räknas frågan
-   som 1 poäng värd) eller **Kortsvar** (öppen fråga, inga alternativ behövs).
-   Rätt svar anges **inte** i arket för flervalsfrågor - det görs i steg 4.
+   2 av kolumnerna Alternativ 1-5 - varje flervalsfråga är värd 1 poäng) eller
+   **Kortsvar** (öppen fråga, inga alternativ behövs). Rätt svar anges **inte** i
+   arket för flervalsfrågor - det görs i steg 4.
 3. Öppna **Skapa Formulär > Nytt formulär (guide)** i menyn. Guiden visar direkt
    hur många frågor av varje typ som hittats - stämmer inte antalet, eller varnar
    guiden för ofullständiga rader, gå till fliken, rätta till och klicka
@@ -91,8 +91,7 @@ det inte finns något resultat att rapportera.
 
 - **Flervalsfrågor:** elevens svar jämförs mot ditt (lärarens) svar på samma fråga -
   **exakt textmatchning**, oberoende av stor/liten bokstav och mellanslag i
-  början/slutet. Poängen hämtas från "Poäng"-kolumnen i arket vid formulärskapandet
-  (1 poäng om inget anges).
+  början/slutet. Varje flervalsfråga är värd 1 poäng.
 - **Kortsvar rättas inte alls.** De är öppna frågor - svaren går att läsa i
   formulärets svarsflik. Ett formulär som bara innehåller kortsvar (inga
   flervalsfrågor) visar istället "✓" i Resultat för varje elev som svarat, så du ser
@@ -153,7 +152,11 @@ version av mallen:
    när du inte längre behöver dem).
 2. Har du oskapade frågor kvar i de gamla flikarna: kopiera över dem rad för rad
    till **Frågor** och välj Typ (Flerval/Kortsvar) för varje rad.
-3. **Formulärregister:** visa fliken (**Skapa Formulär > Visa formulärregister**),
+3. Har du redan en **Frågor**-flik från innan Poäng-kolumnen togs bort: radera
+   fliken (högerklicka på flikfliken > Radera) och kör
+   **Skapa Formulär > Kontrollera/reparera mallen** igen för att skapa den på nytt
+   utan den kolumnen. Alla flervalsfrågor är numera alltid värda 1 poäng.
+4. **Formulärregister:** visa fliken (**Skapa Formulär > Visa formulärregister**),
    radera den, och kör sedan **Skapa Formulär > Kontrollera/reparera mallen** för att
    skapa den på nytt med rätt kolumner (bl.a. den nya kolumnen för resultatmejl).
    Den innehåller bara loggdata, inget som behöver sparas under test. Formulär som

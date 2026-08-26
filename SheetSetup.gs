@@ -7,17 +7,17 @@ function setupQuestionsSheet(ss) {
   if (ss.getSheetByName(SHEET_NAMES.QUESTIONS)) return;
   const sheet = ss.insertSheet(SHEET_NAMES.QUESTIONS);
 
-  sheet.getRange('A1:H1').merge()
+  sheet.getRange('A1:G1').merge()
     .setValue('Bygg frågor för NÄSTA formulär du skapar - en rad per fråga. 1) Skriv frågan i Fråga-kolumnen, ' +
       'eller bara ett nummer (t.ex. "3") om eleverna redan har frågetexten på annat håll. 2) Välj Typ: ' +
       '"Flerval" (kräver minst 2 ifyllda Alternativ-kolumner) eller "Kortsvar" (öppen fråga, inga alternativ ' +
-      'behövs). Flervalsfrågor rättas automatiskt mot ditt eget svar på formuläret (facit) - ange gärna Poäng, ' +
-      'annars räknas frågan som 1 poäng värd. Kortsvar rättas inte - resultatsidan visar bara om eleven svarat. ' +
-      'Raderna rensas automatiskt när formuläret skapas.')
+      'behövs). Flervalsfrågor rättas automatiskt mot ditt eget svar på formuläret (facit) - varje fråga är ' +
+      'värd 1 poäng. Kortsvar rättas inte - resultatsidan visar bara om eleven svarat. Raderna rensas ' +
+      'automatiskt när formuläret skapas.')
     .setWrap(true).setFontStyle('italic').setBackground('#f3f3f3');
   sheet.setRowHeight(1, 88);
 
-  const headers = ['Fråga', 'Typ', 'Alternativ 1', 'Alternativ 2', 'Alternativ 3', 'Alternativ 4', 'Alternativ 5', 'Poäng'];
+  const headers = ['Fråga', 'Typ', 'Alternativ 1', 'Alternativ 2', 'Alternativ 3', 'Alternativ 4', 'Alternativ 5'];
   sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#d9ead3');
   sheet.setFrozenRows(2);
 
