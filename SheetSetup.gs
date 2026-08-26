@@ -14,13 +14,12 @@ function setupQuestionsSheet(ss) {
       'behövs). Flervalsfrågor rättas automatiskt mot ditt eget svar på formuläret (facit) - varje fråga är ' +
       'värd 1 poäng. Kortsvar rättas inte - resultatsidan visar bara om eleven svarat. Raderna rensas ' +
       'automatiskt när formuläret skapas.')
-    .setWrap(true).setFontStyle('italic').setBackground('#f3f3f3');
+    .setWrap(true).setFontStyle('italic').setFontSize(14).setBackground('#f3f3f3');
   sheet.setRowHeight(1, 88);
 
   const headers = ['Fråga', 'Typ', 'Alternativ 1', 'Alternativ 2', 'Alternativ 3', 'Alternativ 4', 'Alternativ 5'];
-  sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#d9ead3');
+  sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setFontSize(12).setBackground('#d9ead3');
   sheet.setFrozenRows(2);
-
   // Dropdown i Typ-kolumnen, förifylld för en hel klass rader i förväg.
   const typeRule = SpreadsheetApp.newDataValidation()
     .requireValueInList([QUESTION_TYPES.MULTIPLE_CHOICE, QUESTION_TYPES.SHORT_ANSWER], true)
