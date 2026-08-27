@@ -173,14 +173,13 @@ function updateResultsSheet() {
   });
 
   const studentEmails = Object.keys(studentScores).sort(function (a, b) { return a.localeCompare(b, 'sv'); });
-  const header = ['Elev (e-post)'].concat(formHeaders).concat(['Antal formulär besvarade']);
+  const header = ['Elev (e-post)'].concat(formHeaders);
   const rows = [];
   const backgrounds = [];
 
   studentEmails.forEach(function (email) {
     const row = [email];
     const bgRow = [null];
-    let answered = 0;
 
     formHeaders.forEach(function (fn) {
       const entry = studentScores[email][fn];
@@ -189,7 +188,6 @@ function updateResultsSheet() {
         bgRow.push(null);
         return;
       }
-      answered++;
       if (entry.label) {
         row.push(entry.label);
         bgRow.push(null);
@@ -200,8 +198,6 @@ function updateResultsSheet() {
       }
     });
 
-    row.push(answered);
-    bgRow.push(null);
     rows.push(row);
     backgrounds.push(bgRow);
   });
