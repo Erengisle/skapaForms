@@ -76,7 +76,9 @@ Därefter, när som helst:
 
 Så fort en elev har svarat på ett formulär MED flervalsfrågor, och facit redan
 finns (du har själv svarat), skickar scriptet automatiskt ett mejl till eleven med
-poängen. Ordningen spelar ingen roll:
+poängen. Mejlet är formaterat (HTML) med en färgkodad resultatruta i samma
+röd/gul/grön-skala som 📊 Resultat-fliken - vill du ändra utseendet gör du det i
+`sendResultEmail()` i `Mailer.gs`. Ordningen spelar ingen roll:
 
 - Svarar eleven **efter** att du har svarat: mejlet skickas direkt.
 - Svarar eleven **innan** du har svarat: inget mejl skickas då, men så fort du
