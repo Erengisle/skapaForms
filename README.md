@@ -109,7 +109,9 @@ Samma färgskala används i två tabeller:
 
 - **Elevtabellen** (överst) - varje elevs poäng per formulär (individuellt), för
   att snabbt se vilka elever som ligger lågt. Formulär utan flervalsfrågor visar
-  "✓" istället för poäng och färgas inte.
+  "✓" istället för poäng och färgas inte. Sist på raden finns en **Snitt**-kolumn
+  med elevens genomsnittliga procent över alla poängsatta formulär (kortsvars-
+  formulär räknas inte in), så du ser helhetsbilden utan att läsa hela raden.
 - **Frågeanalysen** (under elevtabellen) - andel rätt per enskild flervalsfråga,
   summerat över hela klassen (klassvis), för att se vilka frågor som är extra
   svåra. Kortsvar ingår inte här eftersom de inte rättas.
