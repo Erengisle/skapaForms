@@ -13,6 +13,9 @@
  * läraren sitt facit-svar i efterhand skickas inga nya mejl till redan mejlade elever.
  *
  * Kortsvarsformulär (inga flervalsfrågor) har inget att mejla - de rättas inte alls.
+ *
+ * Mejlet skickas som HTML (med en textversion som reserv) och färgkodas med samma
+ * röd/gul/grön-skala som 📊 Resultat-fliken - se sendResultEmail().
  */
 
 function installMailTrigger() {
@@ -109,12 +112,45 @@ function scoreResponse(itemResponses, facitAnswers, pointsMap) {
   return { score: score, max: max };
 }
 
+/**
+ * Skickar resultatet som ett formaterat HTML-mejl (med textversion som reserv för
+ * mejlklienter som inte visar HTML). Färgen på resultatrutan är samma
+ * röd/gul/grön-skala som i 📊 Resultat-fliken (colorForPercentage i Results.gs).
+ */
 function sendResultEmail(email, formName, score, max) {
   const pct = max > 0 ? Math.round((score / max) * 100) : 0;
+  const boxColor = colorForPercentage(pct);
   const subject = 'Ditt resultat: ' + formName;
-  const body = 'Hej!\n\n' +
+
+  const plainBody = 'Hej!\n\n' +
     'Ditt resultat på "' + formName + '": ' + score + ' av ' + max + ' poäng (' + pct + ' %).\n\n' +
     '(Eventuella kortsvarsfrågor i samma formulär rättas inte automatiskt och räknas inte in ovan.)\n\n' +
     'Det här mejlet har skickats automatiskt.';
-  MailApp.sendEmail(email, subject, body);
+
+  const htmlBody =
+    '<div style="font-family: Arial, Helvetica, sans-serif; max-width: 420px; margin: 0 auto; padding: 24px;">' +
+      '<h2 style="margin: 0 0 4px; color: #202124; font-size: 18px;">' + escapeHtml(formName) + '</h2>' +
+      '<p style="margin: 0 0 20px; color: #5f6368; font-size: 13px;">Ditt resultat</p>' +
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" ' +
+        'style="background:' + boxColor + '; border-radius: 10px;">' +
+        '<tr><td style="padding: 20px 24px; text-align: center;">' +
+          '<div style="font-size: 32px; font-weight: bold; color: #202124;">' + score + ' / ' + max + '</div>' +
+          '<div style="font-size: 15px; color: #202124; margin-top: 4px;">' + pct + ' % rätt</div>' +
+        '</td></tr>' +
+      '</table>' +
+      '<p style="font-size: 12px; color: #999; margin-top: 20px; line-height: 1.5;">' +
+        'Eventuella kortsvarsfrågor i samma formulär rättas inte automatiskt och räknas inte in ovan.<br>' +
+        'Det här mejlet har skickats automatiskt.' +
+      '</p>' +
+    '</div>';
+
+  MailApp.sendEmail({ to: email, subject: subject, body: plainBody, htmlBody: htmlBody });
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
