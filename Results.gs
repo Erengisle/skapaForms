@@ -173,14 +173,14 @@ function updateResultsSheet() {
   });
 
   const studentEmails = Object.keys(studentScores).sort(function (a, b) { return a.localeCompare(b, 'sv'); });
-  const header = ['Elev (e-post)'].concat(formHeaders).concat(['Antal formulär besvarade']);
+  const header = ['Elev (e-post)'].concat(formHeaders).concat(['Snitt']);
   const rows = [];
   const backgrounds = [];
 
   studentEmails.forEach(function (email) {
     const row = [email];
     const bgRow = [null];
-    let answered = 0;
+    const percentages = []; // Bara poängsatta formulär räknas in i snittet - inte "✓"/"Väntar på facit"/"–".
 
     formHeaders.forEach(function (fn) {
       const entry = studentScores[email][fn];
@@ -189,7 +189,6 @@ function updateResultsSheet() {
         bgRow.push(null);
         return;
       }
-      answered++;
       if (entry.label) {
         row.push(entry.label);
         bgRow.push(null);
@@ -197,11 +196,19 @@ function updateResultsSheet() {
         row.push(entry.score + '/' + entry.max);
         const pct = entry.max > 0 ? (entry.score / entry.max) * 100 : 0;
         bgRow.push(colorForPercentage(pct));
+        percentages.push(pct);
       }
     });
 
-    row.push(answered);
-    bgRow.push(null);
+    if (percentages.length > 0) {
+      const avgPct = percentages.reduce(function (sum, p) { return sum + p; }, 0) / percentages.length;
+      row.push(Math.round(avgPct) + ' %');
+      bgRow.push(colorForPercentage(avgPct));
+    } else {
+      row.push('–');
+      bgRow.push(null);
+    }
+
     rows.push(row);
     backgrounds.push(bgRow);
   });
