@@ -26,9 +26,9 @@
  */
 
 const RESULT_COLORS = {
-  RED: '#f4cccc',
-  YELLOW: '#fff2cc',
-  GREEN: '#d9ead3'
+  RED: '#d61320',
+  YELLOW: '#f7ef05',
+  GREEN: '#31f705'
 };
 
 function colorForPercentage(pct) {
