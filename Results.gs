@@ -26,7 +26,7 @@
  */
 
 const RESULT_COLORS = {
-  RED: '#d61320',
+  RED: '#f72505',
   YELLOW: '#f7ef05',
   GREEN: '#31f705'
 };
