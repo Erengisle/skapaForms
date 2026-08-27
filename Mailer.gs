@@ -16,6 +16,10 @@
  *
  * Mejlet skickas som HTML (med en textversion som reserv) och färgkodas med samma
  * röd/gul/grön-skala som 📊 Resultat-fliken - se sendResultEmail().
+ *
+ * Har en elev tappat bort sitt mejl kan läraren skicka om det manuellt till en
+ * specifik e-postadress via menyn "✉️ Skicka om resultatmejl" - se
+ * showResendMailDialog() och resendResultEmail() längst ner i filen.
  */
 
 function installMailTrigger() {
@@ -153,4 +157,91 @@ function escapeHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function showResendMailDialog() {
+  const html = HtmlService.createHtmlOutputFromFile('ResendMail').setWidth(420).setHeight(320);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Skicka om resultatmejl');
+}
+
+/**
+ * Anropas från ResendMail.html. Listar bara formulär som har poängsatta (flervals-)
+ * frågor - kortsvarsformulär har inget resultat att mejla.
+ */
+function getMailableForms() {
+  const ss = SpreadsheetApp.getActive();
+  const register = ss.getSheetByName(SHEET_NAMES.REGISTER);
+  const lastRow = register.getLastRow();
+  if (lastRow < 2) return [];
+
+  const registerValues = register.getRange(2, 1, lastRow - 1, 12).getValues();
+  return registerValues
+    .filter(function (r) { return r[0] && Object.keys(parsePointsMap(r[11])).length > 0; })
+    .map(function (r) { return { id: r[0], name: r[1] }; });
+}
+
+/**
+ * Anropas från ResendMail.html. Räknar om poängen mot AKTUELLT facit (inte det som
+ * eventuellt gällde när eleven ursprungligen mejlades - se anmärkningen i
+ * mailResultsForForm_) och skickar samma HTML-mejl som vid automatisk utskick.
+ */
+function resendResultEmail(formId, studentEmail) {
+  const email = String(studentEmail || '').trim().toLowerCase();
+  if (!email) throw new Error('Ange elevens e-postadress.');
+
+  const ss = SpreadsheetApp.getActive();
+  const register = ss.getSheetByName(SHEET_NAMES.REGISTER);
+  const lastRow = register.getLastRow();
+  const registerValues = lastRow >= 2 ? register.getRange(2, 1, lastRow - 1, 13).getValues() : [];
+
+  let rowNum = -1;
+  let r = null;
+  for (let i = 0; i < registerValues.length; i++) {
+    if (registerValues[i][0] === formId) { rowNum = i + 2; r = registerValues[i]; break; }
+  }
+  if (!r) throw new Error('Formuläret hittades inte i registret.');
+
+  const name = r[1];
+  const creatorEmail = String(r[3] || '').trim().toLowerCase();
+  const pointsMap = parsePointsMap(r[11]);
+  if (Object.keys(pointsMap).length === 0) {
+    throw new Error('"' + name + '" har inga poängsatta frågor - det finns inget resultat att skicka.');
+  }
+
+  let form;
+  try {
+    form = FormApp.openById(formId);
+  } catch (err) {
+    throw new Error('Formuläret kunde inte öppnas (kan ha tagits bort i Drive).');
+  }
+
+  const responses = form.getResponses();
+  const facitResponse = findFacitResponse(responses, creatorEmail);
+  if (!facitResponse) {
+    throw new Error('Du har inte svarat på "' + name + '" än, så det finns inget facit att räkna resultatet mot.');
+  }
+
+  const facitAnswers = {};
+  facitResponse.getItemResponses().forEach(function (ir) {
+    facitAnswers[ir.getItem().getId()] = normalizeAnswer(ir.getResponse());
+  });
+
+  const studentResponse = responses.find(function (response) {
+    return String(response.getRespondentEmail() || '').trim().toLowerCase() === email;
+  });
+  if (!studentResponse) {
+    throw new Error('Ingen elev med den e-postadressen har svarat på "' + name + '" än.');
+  }
+
+  const result = scoreResponse(studentResponse.getItemResponses(), facitAnswers, pointsMap);
+  sendResultEmail(email, name, result.score, result.max);
+
+  const alreadyMailed = parseMailedIds(r[12]);
+  const responseId = studentResponse.getId();
+  if (alreadyMailed.indexOf(responseId) === -1) {
+    alreadyMailed.push(responseId);
+    register.getRange(rowNum, 13).setValue(JSON.stringify(alreadyMailed));
+  }
+
+  return { formName: name, score: result.score, max: result.max };
 }

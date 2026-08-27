@@ -19,6 +19,7 @@ function onOpen() {
     .createMenu('Skapa Formulär')
     .addItem('🆕 Nytt formulär (guide)', 'showNewFormWizard')
     .addItem('📊 Uppdatera resultatsidan', 'updateResultsSheet')
+    .addItem('✉️ Skicka om resultatmejl', 'showResendMailDialog')
     .addSeparator()
     .addItem('📋 Visa formulärregister', 'showRegisterSheet')
     .addItem('🔧 Kontrollera/reparera mallen', 'setupTemplateSheets')
@@ -48,7 +49,8 @@ function showHelp() {
     '<li>Kortsvar rättas inte - det är öppna frågor. På resultatsidan ser du om en elev har svarat eller inte; ' +
     'själva svaren läser du i formulärets svarsflik.</li>' +
     '<li><b>Eleven får automatiskt ett mejl med sitt resultat</b> (poäng på flervalsfrågorna) så snart facit ' +
-    'finns - antingen direkt vid svar, eller i efterhand så fort du själv har svarat på formuläret.</li>' +
+    'finns - antingen direkt vid svar, eller i efterhand så fort du själv har svarat på formuläret. Har en elev ' +
+    'tappat bort sitt mejl kan du skicka om det via <b>✉️ Skicka om resultatmejl</b> i menyn.</li>' +
     '<li>Klicka på <b>Uppdatera resultatsidan</b> när du vill se en sammanställning per elev, över alla formulär, ' +
     'och en frågeanalys som visar vilka frågor klassen tyckte var svårast.</li>' +
     '</ol>' +

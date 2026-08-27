@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 13px; padding: 4px 14px 14px; }
+    label { display: block; margin-top: 14px; font-weight: bold; }
+    input[type=text], select { width: 100%; padding: 6px; box-sizing: border-box; margin-top: 4px; font-size: 13px; }
+    select:disabled, input:disabled { background: #f3f3f3; color: #999; }
+    .hint { color: #666; font-size: 12px; margin-top: 4px; }
+    #sendBtn { margin-top: 20px; padding: 9px 18px; background: #34a853; color: #fff; border: none;
+             border-radius: 4px; cursor: pointer; font-size: 13px; }
+    #sendBtn:disabled { background: #aaa; cursor: default; }
+    #error { color: #c00; margin-top: 12px; display: none; }
+    #success { color: #1a7a3c; margin-top: 12px; display: none; font-weight: bold; }
+    .warning { background: #fce8e6; border: 1px solid #d93025; border-radius: 6px; padding: 10px 12px;
+               margin-top: 10px; color: #a50e0e; display: none; }
+  </style>
+</head>
+<body>
+  <p class="hint">Skicka om resultatmejlet till en elev - t.ex. om de har tappat bort det ursprungliga mejlet.
+    Poängen räknas om mot ditt <b>senaste</b> facit-svar just nu.</p>
+
+  <div id="noFormsWarning" class="warning">
+    Inga formulär med poängsatta frågor hittades i registret. Skapa ett formulär med
+    flervalsfrågor och svara på det själv (facit) innan du kan skicka resultatmejl.
+  </div>
+
+  <label for="formSelect">Formulär</label>
+  <select id="formSelect"></select>
+
+  <label for="email">Elevens e-postadress</label>
+  <input type="text" id="email" placeholder="elev@edu.huddinge.se">
+
+  <button id="sendBtn" onclick="resend()">Skicka mejl</button>
+  <div id="error"></div>
+  <div id="success"></div>
+
+  <script>
+    google.script.run.withSuccessHandler(populateForms).withFailureHandler(onError).getMailableForms();
+
+    function populateForms(forms) {
+      const select = document.getElementById('formSelect');
+      select.innerHTML = '';
+
+      if (!forms.length) {
+        document.getElementById('noFormsWarning').style.display = 'block';
+        select.disabled = true;
+        document.getElementById('email').disabled = true;
+        document.getElementById('sendBtn').disabled = true;
+        return;
+      }
+
+      forms.forEach(function (f) {
+        const opt = document.createElement('option');
+        opt.value = f.id;
+        opt.textContent = f.name;
+        select.appendChild(opt);
+      });
+    }
+
+    function resend() {
+      const btn = document.getElementById('sendBtn');
+      const errorBox = document.getElementById('error');
+      const successBox = document.getElementById('success');
+      errorBox.style.display = 'none';
+      successBox.style.display = 'none';
+
+      const formId = document.getElementById('formSelect').value;
+      const email = document.getElementById('email').value;
+
+      btn.disabled = true;
+      btn.textContent = 'Skickar...';
+
+      google.script.run
+        .withSuccessHandler(onSent)
+        .withFailureHandler(onError)
+        .resendResultEmail(formId, email);
+    }
+
+    function onSent(result) {
+      const btn = document.getElementById('sendBtn');
+      btn.disabled = false;
+      btn.textContent = 'Skicka mejl';
+
+      const successBox = document.getElementById('success');
+      successBox.textContent = '✅ Mejl skickat: ' + result.score + ' av ' + result.max + ' poäng på "' + result.formName + '".';
+      successBox.style.display = 'block';
+    }
+
+    function onError(err) {
+      const btn = document.getElementById('sendBtn');
+      btn.disabled = false;
+      btn.textContent = 'Skicka mejl';
+
+      const errorBox = document.getElementById('error');
+      errorBox.textContent = err.message || String(err);
+      errorBox.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

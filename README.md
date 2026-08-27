@@ -23,6 +23,7 @@ en sammanställning av elevernas poäng.
    - `Results.gs`
    - `Mailer.gs`
    - `Wizard.html` (skapa som en HTML-fil, inte .gs)
+   - `ResendMail.html` (skapa som en HTML-fil, inte .gs)
 5. Spara projektet och ladda om kalkylarket i webbläsaren.
 6. En ny meny **"Skapa Formulär"** dyker upp. Klicka på valfritt menyval för att
    godkänna de behörigheter Google frågar efter (Forms, Kalkylark, Drive, Mejl) -
@@ -88,6 +89,11 @@ Varje elevsvar mejlas bara **en gång** - rättar du ditt facit-svar i efterhand
 skickas inga nya mejl till elever som redan fått ett. Formulär som bara har
 kortsvar (inga flervalsfrågor) skickar inget mejl, eftersom de inte rättas och
 det inte finns något resultat att rapportera.
+
+**Tappat bort mejlet?** Klicka **Skapa Formulär > ✉️ Skicka om resultatmejl**,
+välj formulär och skriv in elevens e-postadress - poängen räknas om mot ditt
+senaste facit-svar och samma mejl skickas igen. Går att använda när som helst,
+oavsett om eleven redan fått ett automatiskt mejl eller inte.
 
 ### Hur rättningen fungerar
 
